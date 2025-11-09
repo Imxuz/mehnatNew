@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreignId('dir_demand_id')->constrained();
             $table->foreignId('admin_id')->constrained();
             $table->foreignId('occupation_id')->constrained();
-            $table->timestamps('open');
-            $table->timestamps('close');
+            $table->timestamp('open_at')->nullable();
+            $table->timestamp('close_at')->nullable();
             $table->boolean('publication')->default(false);
 
             $table->softDeletes();

@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('phone_attempts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->unique();
-            $table->integer("attempt")->default(0);
+            $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
+            $table->unsignedTinyInteger('sms_sent_today')->default(0);
+            $table->timestamp('last_sms_sent_at')->nullable();
             $table->timestamps();
         });
     }
