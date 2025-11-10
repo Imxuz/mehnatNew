@@ -10,7 +10,7 @@ use App\Http\Controllers\AuthUserController;
 Route::get('/ec', function () {
     return response()->json(["status" => "yest"]);
 });
-Route::post('user/create', [AuthUserController::class, 'create']);
+Route::post('logi', [AuthUserController::class, 'create']);
 Route::post('user/resend-code', [AuthUserController::class, 'resendCode']);
 Route::post('user/verify-code', [AuthUserController::class, 'verifyCode']);
 Route::post('/login', [AuthUserController::class, 'login']);

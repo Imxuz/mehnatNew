@@ -1,13 +1,15 @@
 <?php
 namespace App\Services;
+use App\Models\Demand;
 use App\Models\DirDemand;
+use App\Models\DocUser;
 use Illuminate\Support\Str;
 
 class UserService
 {
     public function storeUserFiles($user, $request)
     {
-        $uniqid = Str::uuid();
+        $uniqid =$user->unique_id==null? Str::uuid():$user->unique_id;
         $fileFields = [
             'passport',
             'driverLicence',
@@ -36,6 +38,16 @@ class UserService
                     'public'
                 );
                 $dirDemand = DirDemand::where('name', $field)->first();
+
+                DocUser::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'dir_demand_id' => $dirDemand->id,
+                    ],
+                    [
+                        'path' => $path,
+                    ]
+                );
             }
         }
 
