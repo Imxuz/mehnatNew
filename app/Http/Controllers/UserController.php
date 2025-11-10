@@ -17,9 +17,7 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function __construct(private UserService $userService)
-    {
-    }
+    public function __construct(private UserService $userService){}
     public function index()
     {
         return response()->json(User::all());
@@ -30,12 +28,17 @@ class UserController extends Controller
      */
     public function store(StoreUserRequest $request)
     {
-        $user = $this->userService->createUser($request->validated());
-
+        $user = auth('api')->user();
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        $result = $this->userService->storeUserFiles($user, $request);
         return response()->json([
-            'message' => 'User created successfully',
-            'user' => $user
-        ], 201);
+            'message' => 'User files uploaded successfully',
+            'data' => $result
+        ]);
+
+
     }
 
     /**

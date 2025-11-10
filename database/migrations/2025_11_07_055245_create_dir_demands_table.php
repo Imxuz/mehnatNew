@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('adder_dir_id')->nullable();
             $table->json('title');
+            $table->string("name",100);
             $table->integer('sort_number');
             $table->enum('type', ['text', 'file']);
             $table->timestamps();

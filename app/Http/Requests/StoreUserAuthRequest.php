@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Rules\Regex;
-class StoreUserRequest extends FormRequest
+class StoreUserAuthRequest extends FormRequest
 
 {
     /**
@@ -24,13 +24,18 @@ class StoreUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'passport' => 'required|mimes:png,jpeg,jpg,svg,pdf|max:5120',
-            'driverLicence' => 'nullable|mimes:png,jpeg,jpg,svg,pdf|max:5120',
-            'loadDriverLicence' => 'nullable|mimes:png,jpeg,jpg,svg,pdf|max:5120',
-            'certificate' => 'nullable|mimes:png,jpeg,jpg,svg,pdf|max:5120',
-            'education' => 'nullable|mimes:png,jpeg,jpg,svg,pdf|max:5120',
-            'workbook' => 'nullable|mimes:png,jpeg,jpg,svg,pdf|max:5120',
-            'militaryCertificate' => 'nullable|mimes:png,jpeg,jpg,svg,pdf|max:5120',
+            "name" => "required|string|min:3|max:150",
+            "phone" => ["required", "regex:/^\+998[0-9]{9}$/", "unique:users,phone"],
+            "password" => [
+                "required",
+                "confirmed",
+                Password::min(8)
+                    ->letters()
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+                    ->uncompromised()
+            ],
         ];
     }
     protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)

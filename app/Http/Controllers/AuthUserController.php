@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUserAuthRequest;
 use App\Models\User;
 use App\Services\AuthUserService;
 use Illuminate\Http\Request;
@@ -13,6 +14,17 @@ class AuthUserController extends Controller
 {
     public function __construct(private AuthUserService $authUserService)
     {
+    }
+
+
+    public function create(StoreUserAuthRequest $request)
+    {
+        $user = $this->authUserService->createUser($request->validated());
+
+        return response()->json([
+            'message' => 'User created successfully',
+            'user' => $user
+        ], 201);
     }
     public function resendCode(Request $request)
     {
