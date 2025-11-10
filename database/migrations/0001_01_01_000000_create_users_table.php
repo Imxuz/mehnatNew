@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string("pinfl",14)->nullable();
             $table->string("phone", 13)->unique();
             $table->string('email', 100)->unique()->nullable();
-            $table->string('verification_code', 6);
+            $table->string('verification_code', 6)->nullable();
             $table->string('password');
             $table->boolean('is_verified')->default(false);
             $table->rememberToken();

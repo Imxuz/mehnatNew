@@ -5,7 +5,7 @@ use App\models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
-class UserService
+class AuthUserService
 {
     public function __construct(private SmsService $smsService){}
     public function createUser(array $data): User
@@ -28,7 +28,7 @@ class UserService
             $data['is_verified'] = false;
             $user = User::create($data);
         }
-         $this->smsService->sendVerificationCode($user->phone, $user->verification_code);
+        $this->smsService->sendVerificationCode($user->phone, $user->verification_code);
         return $user;
     }
 

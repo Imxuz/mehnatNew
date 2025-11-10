@@ -8,6 +8,9 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rules\Password;
+use Tymon\JWTAuth\Exceptions\JWTException;
 
 class UserController extends Controller
 {
@@ -60,50 +63,7 @@ class UserController extends Controller
     }
 
 
-    public function resendCode(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            "phone" => ["required", "regex:/^\+998[0-9]{9}$/"],
-        ]);
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'errors' => $validator->errors(),
-            ], 422);
-        }
 
-        $user = User::where('phone', $request->phone)->first();
-        if (!$user) {
-            return response()->json(['message' => 'User not found'], 404);
-        }
-        if ($user->is_verified) {
-            return response()->json(['message' => 'User already verified'], 400);
-        }
-        $user->verification_code = mt_rand(100000, 999999);
-        $user->save();
-        try {
-            $this->userService->sendVerificationCode($user);
-            return response()->json(['message' => 'Verification code resent successfully']);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => $e->getMessage(),
-            ], 429);
-        }
-    }
 
-    public function verifyCode(Request $request)
-    {
-        $user = $request->user();
-
-        if ($user->verification_code === $request->code) {
-            $user->is_verified = true;
-            $user->verification_code = null;
-            $user->save();
-
-            return response()->json(['message' => 'User verified successfully']);
-        }
-
-        return response()->json(['message' => 'Invalid verification code'], 400);
-    }
 
 }
