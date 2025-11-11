@@ -12,7 +12,6 @@ class DirDemandSeeder extends Seeder
         DB::table('dir_demands')->insert([
             [
                 'id' => 1,
-                'adder_dir_id' => null,
                 'title' => json_encode([
                     'ru' => 'Оценка образования кандидата',
                     'uz' => "Nomzodning ta'limini baholash",
@@ -25,7 +24,6 @@ class DirDemandSeeder extends Seeder
             ],
             [
                 'id' => 2,
-                'adder_dir_id' => null,
                 'title' => json_encode([
                     'ru' => 'Оценка дополнительных сертификатов',
                     'uz' => "Qo'shimcha sertifikatlarni baholash",
@@ -38,7 +36,6 @@ class DirDemandSeeder extends Seeder
             ],
             [
                 'id' => 3,
-                'adder_dir_id' => null,
                 'title' => json_encode([
                     'ru' => 'Оценка опыта работы кандидата',
                     'uz' => 'Nomzodning ish tajribasini baholash',
@@ -51,7 +48,6 @@ class DirDemandSeeder extends Seeder
             ],
             [
                 'id' => 4,
-                'adder_dir_id' => null,
                 'title' => json_encode([
                     'ru' => 'Оценка водительского удостоверения',
                     'uz' => 'Haydovchilik guvohnomasini baholash',
@@ -64,7 +60,6 @@ class DirDemandSeeder extends Seeder
             ],
             [
                 'id' => 5,
-                'adder_dir_id' => null,
                 'title' => json_encode([
                     'ru' => 'Оценка информации о кандидате',
                     'uz' => "Nomzodning o'zi haqidagi ma'lumotini baholash",
@@ -77,7 +72,6 @@ class DirDemandSeeder extends Seeder
             ],
             [
                 'id' => 6,
-                'adder_dir_id' => null,
                 'title' => json_encode([
                     'ru' => 'Оценка военной службы',
                     'uz' => 'Harbiy xizmatni baholash',
@@ -90,7 +84,6 @@ class DirDemandSeeder extends Seeder
             ],
             [
                 'id' => 7,
-                'adder_dir_id' => null,
                 'title' => json_encode([
                     'ru' => 'Место проживания кандидата',
                     'uz' => 'Nomzodning yashash manzili',
@@ -103,7 +96,6 @@ class DirDemandSeeder extends Seeder
             ],
             [
                 'id' => 8,
-                'adder_dir_id' => null,
                 'title' => json_encode([
                     'ru' => 'Паспорт кандидата',
                     'uz' => 'Nomzodning passport',
@@ -116,7 +108,6 @@ class DirDemandSeeder extends Seeder
             ],
             [
                 'id' => 9,
-                'adder_dir_id' => null,
                 'title' => json_encode([
                     'ru' => 'Удостоверение водителя трактора',
                     'uz' => 'Traktor mashinist guvohnomasi',

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\DirDemand;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Rules\Regex;
@@ -23,8 +24,17 @@ class StoreUserRequest extends FormRequest
      */
     public function rules(): array
     {
+        $user = auth('api')->user();
+        $demand = DirDemand::join('doc_users as d', 'd.dir_demand_id', '=', 'dir_demands.id')
+            ->where('dir_demands.name', 'passport')
+            ->where('d.user_id', $user->id)
+            ->first();
+        $passportRule = !empty($demand)
+            ? 'nullable|mimes:png,jpeg,jpg,svg,pdf|max:5120'
+            : 'required|mimes:png,jpeg,jpg,svg,pdf|max:5120';
+
         return [
-            'passport' => 'required|mimes:png,jpeg,jpg,svg,pdf|max:5120',
+            'passport' => $passportRule,
             'driverLicence' => 'nullable|mimes:png,jpeg,jpg,svg,pdf|max:5120',
             'loadDriverLicence' => 'nullable|mimes:png,jpeg,jpg,svg,pdf|max:5120',
             'certificate' => 'nullable|mimes:png,jpeg,jpg,svg,pdf|max:5120',

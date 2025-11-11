@@ -16,6 +16,9 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             $table->foreignId('dir_demand_id')->constrained();
             $table->string('path');
+            $table->boolean('check')->nullable(); //for AI check results
+            $table->string('doc_info')->nullable(); //for AI check results
+            $table->string('description')->nullable(); //for AI check results
 
             $table->timestamps();
         });

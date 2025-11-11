@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('region_id')->constrained();
             $table->foreignId('role_id')->constrained();
-            $table->string('name',100);
             $table->string('surname',100);
+            $table->string('name',100);
             $table->string('middle_name',100);
             $table->string('job_title',255);
             $table->string('email',50);

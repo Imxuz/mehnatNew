@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('occupations', function (Blueprint $table) {
             $table->id();
             $table->json("occupation");
-            $table->json("demand");
+            $table->json("demand"); //Ushbu tayyor kasb uchun tayyor talab quymoqchi bo'lsa vakansiyaga kerak bo'lmasa kerakmas
             $table->timestamps();
         });
     }

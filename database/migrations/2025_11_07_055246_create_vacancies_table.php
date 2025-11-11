@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('vacancies', function (Blueprint $table) {
             $table->id();
             $table->unsignedInteger('region_id');
-            $table->foreignId('dir_demand_id')->constrained();
             $table->foreignId('admin_id')->constrained();
             $table->foreignId('occupation_id')->constrained();
             $table->timestamp('open_at')->nullable();
