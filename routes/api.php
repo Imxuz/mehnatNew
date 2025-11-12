@@ -5,6 +5,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthUserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\VacancyController;
+use App\Http\Controllers\ClickController;
 
 
 
@@ -21,6 +22,7 @@ Route::post('/logout', [AuthUserController::class, 'logout']);
 
 Route::middleware('auth.jwt')->group(function () {
     Route::resource('user', UserController::class);
+    Route::resource('click', ClickController::class);
 });
 
 

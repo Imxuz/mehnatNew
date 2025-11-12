@@ -15,10 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained();
             $table->foreignId('vacancy_id')->constrained();
-            $table->foreignId('admin_id')->constrained();
-            $table->text('comment');
-            $table->enum('sent',['accept', 'cancel']);
-
+            $table->integer('admin_id')->nullable();
+            $table->text('comment')->nullable();
+            $table->enum('sent',['accept', 'cancel'])->nullable();
             $table->timestamps();
         });
     }

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->integer('region_id')->nullable();
             $table->string("name",100);
             $table->string("pinfl",14)->nullable();
-            $table->string("phone", 13)->unique();
+            $table->string("phone", 12)->unique();
             $table->string("unique_id", 50)->nullable();
             $table->string('email', 100)->unique()->nullable();
             $table->string('verification_code', 6)->nullable();

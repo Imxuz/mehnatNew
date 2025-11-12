@@ -29,7 +29,7 @@ class AuthUserController extends Controller
     public function resendCode(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            "phone" => ["required", "regex:/^\+998[0-9]{9}$/"],
+            'phone' => ['required', 'regex:/^998[0-9]{9}$/', 'digits:12'],
         ]);
         if ($validator->fails()) {
             return response()->json([
@@ -45,7 +45,7 @@ class AuthUserController extends Controller
     public function verifyCode(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            "phone" => ["required", "regex:/^\+998[0-9]{9}$/"],
+            'phone' => ['required', 'regex:/^998[0-9]{9}$/', 'digits:12'],
             "code" => ["required", "digits:6"],
         ]);
         if ($validator->fails()) {
@@ -71,7 +71,7 @@ class AuthUserController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            "phone" => ["required", "regex:/^\+998[0-9]{9}$/"],
+            'phone' => ['required', 'regex:/^998[0-9]{9}$/', 'digits:12'],
             "password" => ["required", "string:100"],
         ]);
         if ($validator->fails()) {
