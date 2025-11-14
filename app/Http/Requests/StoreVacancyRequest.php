@@ -28,7 +28,7 @@ class StoreVacancyRequest extends FormRequest
             "open_At"        => "required|date_format:Y-m-d H:i:s",
             "close_At"       => "required|date_format:Y-m-d H:i:s",
             "publication"    => "nullable|boolean",
-//            "demands"        => "required|array|min:1",
+            "demands"        => "required|array|min:1",
             'demands.*.dir_demand_id' => 'required_with:demands.*.score,demands.*.adder_text|integer',
             'demands.*.score'         => 'required_with:demands.*.dir_demand_id,demands.*.adder_text|numeric',
             'demands.*.adder_text'    => 'required_with:demands.*.dir_demand_id,demands.*.score|array',

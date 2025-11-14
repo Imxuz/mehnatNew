@@ -31,7 +31,7 @@ class UserService
                 $path = $file->storeAs(
                     'uploads/user_' . $user->id . '/' . $uniqid,
                     $filename,
-                    'public'
+                    'private'
                 );
                 $dirDemand = DirDemand::where('name', $field)->first();
                 DocUser::updateOrCreate(

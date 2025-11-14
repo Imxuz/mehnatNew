@@ -13,9 +13,9 @@ class VacancyController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        //
+    public function index(){
+        $vacancies = Vacancy::with('demands.dir_demand')->get();
+        return response()->json($vacancies);
     }
 
     /**
@@ -68,9 +68,16 @@ class VacancyController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Vacancy $vacancy)
+    public function show($id)
     {
-        //
+        if (!is_numeric($id) || intval($id) != $id) {
+            return response()->json(['error' => 'Invalid ID'], 400);
+        }
+        $vacancies = Vacancy::where('id', $id)
+            ->with('demands.dir_demand')
+            ->get();
+
+        return response()->json($vacancies);
     }
 
     /**

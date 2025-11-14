@@ -111,6 +111,22 @@ class AuthUserController extends Controller
         }
     }
 
+    public function userAdmin()
+    {
+        $user = auth('api')->user();
+        $admin = auth('apiAdmin')->user();
+
+        if ($user) {
+            return response()->json($user);
+        } elseif ($admin) {
+            return response()->json($admin);
+        } else {
+            return response()->json([
+                'error' => 'Unauthorized',
+            ], 403);
+        }
+    }
+
     protected function respondWithToken($token)
     {
         return response()->json([
@@ -120,4 +136,6 @@ class AuthUserController extends Controller
             'user'         => Auth::user(),
         ]);
     }
+
+
 }

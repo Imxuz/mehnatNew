@@ -15,4 +15,11 @@ class Vacancy extends Model
          "admin_id"     ,
          "publication"  ,
     ];
+
+    public function demands()
+    {
+        return $this->hasMany(Demand::class, 'vacancy_id', 'id')
+            ->select('id', 'vacancy_id', 'adder_text', 'score', 'dir_demand_id');
+    }
+
 }

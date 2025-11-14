@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthUserController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\VacancyController;
 use App\Http\Controllers\ClickController;
+use App\Http\Controllers\UserVacancyController;
 
 
 
@@ -20,9 +21,17 @@ Route::post('/login', [AuthUserController::class, 'login']);
 Route::post('/refresh', [AuthUserController::class, 'refresh']);
 Route::post('/logout', [AuthUserController::class, 'logout']);
 
+Route::post('/auth/user', [AuthUserController::class, 'userAdmin']);
+
+
 Route::middleware('auth.jwt')->group(function () {
     Route::resource('user', UserController::class);
     Route::resource('click', ClickController::class);
+    Route::get('docs', [UserController::class,'show']);
+    Route::resource('userVacancy', UserVacancyController::class);
+    Route::post('click/vacancyInfo',[ UserVacancyController::class, 'userVacancy']);
+
+
 });
 
 

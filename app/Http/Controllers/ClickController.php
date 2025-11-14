@@ -65,9 +65,13 @@ class ClickController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Click $click)
+    public function show($id)
     {
-        //
+        if (!is_numeric($id) || intval($id) != $id) {
+            return response()->json(['error' => 'Invalid ID'], 400);
+        }
+        $vacancies = Vacancy::where('id', $id)->with('demands.dir_demand')->get();
+        return response()->json($vacancies);
     }
 
     /**

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUserRequest;
+use App\Models\DocUser;
 use App\Models\User;
 use App\Http\Requests\UpdateUserRequest;
 use App\Services\UserService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
@@ -20,7 +22,15 @@ class UserController extends Controller
     public function __construct(private UserService $userService){}
     public function index()
     {
-        return response()->json(User::all());
+        $user = auth('api')->user();
+        $userDocs = DB::table('dir_demands as d')
+            ->leftJoin('doc_users as u', function ($join) use ($user) {
+                $join->on('u.dir_demand_id', '=', 'd.id')
+                    ->where('u.user_id', '=', $user->id);
+            })
+            ->select('d.id', 'd.name', 'u.path')
+            ->get();
+        return response()->json($userDocs);
     }
 
     /**
@@ -44,9 +54,12 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $user)
+    public function show()
     {
-        //
+        $user = auth('api')->user();
+        $doc = DocUser::where('user_id', $user->id)->firstOrFail();
+
+        return response()->file(storage_path('app/private/' . $doc->path));
     }
 
     /**
