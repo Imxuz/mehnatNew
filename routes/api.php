@@ -10,10 +10,6 @@ use App\Http\Controllers\UserVacancyController;
 
 
 
-// Oddiy GET so'rovi
-Route::get('/ec', function () {
-    return response()->json(["status" => "yest"]);
-});
 Route::post('user/create', [AuthUserController::class, 'create']);
 Route::post('user/resend-code', [AuthUserController::class, 'resendCode']);
 Route::post('user/verify-code', [AuthUserController::class, 'verifyCode']);

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthUserController extends Controller
 {
@@ -97,17 +98,25 @@ class AuthUserController extends Controller
         auth('api')->logout();
         return response()->json(['message' => 'Successfully logged out']);
     }
-
-    public function refresh()
+    public function refresh(Request $request)
     {
+        $refreshToken = $request->input('refresh_token');
+
         try {
-            $newToken = auth('api')->refresh();
-            return $this->respondWithToken($newToken);
-        } catch (JWTException $e) {
+            $payload = JWTAuth::setToken($refreshToken)->getPayload();
+            if (!$payload->get('refresh')) {
+                return response()->json(['error' => 'Invalid refresh token'], 401);
+            }
+
+            $user = JWTAuth::authenticate($refreshToken);
+            $newAccessToken = auth('api')->login($user);
+
             return response()->json([
-                'error' => 'Could not refresh token. Token is either missing or invalid.',
-                'message' => $e->getMessage()
-            ], 401);
+                'access_token' => $newAccessToken,
+                'expires_in' => auth('api')->factory()->getTTL() * 60
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Token invalid or expired'], 401);
         }
     }
 
@@ -129,8 +138,11 @@ class AuthUserController extends Controller
 
     protected function respondWithToken($token)
     {
+        $refreshToken = JWTAuth::customClaims(['refresh' => true])->fromUser(auth('api')->user());
+
         return response()->json([
             'access_token' => $token,
+            'refresh_token' => $refreshToken,
             'token_type'   => 'bearer',
             'expires_in' => auth('api')->factory()->getTTL() * 60,
             'user'         => Auth::user(),
