@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('vacancies', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('publish_admin_id')->constrained('admins');
             $table->unsignedInteger('region_id');
             $table->foreignId('admin_id')->constrained();
             $table->foreignId('occupation_id')->constrained();

@@ -13,7 +13,10 @@ class RegionController extends Controller
      */
     public function index()
     {
-        //
+        $regions = Region::whereNull('sub_region_id')
+            ->with('children')
+            ->get();
+        return response()->json($regions);
     }
 
     /**

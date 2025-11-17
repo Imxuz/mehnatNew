@@ -13,7 +13,8 @@ class DirDemandController extends Controller
      */
     public function index()
     {
-        //
+        $dir_demand = DirDemand::with('adder_demands')->get();
+        return response()->json($dir_demand);
     }
 
     /**

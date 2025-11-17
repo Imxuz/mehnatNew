@@ -7,13 +7,14 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\VacancyController;
 use App\Http\Controllers\ClickController;
 use App\Http\Controllers\UserVacancyController;
+use App\Http\Controllers\RegionController;
+use App\Http\Controllers\DirDemandController;
 
 
 
-// Oddiy GET so'rovi
-Route::get('/ec', function () {
-    return response()->json(["status" => "yest"]);
-});
+Route::resource('region', RegionController::class);
+Route::resource('dir_demands', DirDemandController::class);
+Route::get('/auth/user', [AuthUserController::class, 'userAdmin']);
 Route::post('user/create', [AuthUserController::class, 'create']);
 Route::post('user/resend-code', [AuthUserController::class, 'resendCode']);
 Route::post('user/verify-code', [AuthUserController::class, 'verifyCode']);
@@ -21,13 +22,12 @@ Route::post('/login', [AuthUserController::class, 'login']);
 Route::post('/refresh', [AuthUserController::class, 'refresh']);
 Route::post('/logout', [AuthUserController::class, 'logout']);
 
-Route::post('/auth/user', [AuthUserController::class, 'userAdmin']);
 
 
 Route::middleware('auth.jwt')->group(function () {
     Route::resource('user', UserController::class);
     Route::resource('click', ClickController::class);
-    Route::get('docs', [UserController::class,'show']);
+    Route::get('docs/{filepath}', [UserController::class,'show'])->where('filepath', '.*');;
     Route::resource('userVacancy', UserVacancyController::class);
     Route::post('click/vacancyInfo',[ UserVacancyController::class, 'userVacancy']);
 

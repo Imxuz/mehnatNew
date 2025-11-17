@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('dir_demands', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('adder_dir_id')->nullable();
             $table->json('title');
             $table->string("name",100);
             $table->integer('sort_number');

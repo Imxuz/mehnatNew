@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('adder_demands', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('dir_demand_id')->constrained();
             $table->json("adder_text");
             $table->timestamps();
         });

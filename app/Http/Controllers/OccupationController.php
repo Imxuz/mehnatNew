@@ -13,7 +13,8 @@ class OccupationController extends Controller
      */
     public function index()
     {
-        //
+        $occupation = Occupation::get();
+        return response()->json($occupation);
     }
 
     /**

@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(DirDemandSeeder::class);
+        $this->call(RegionsTableSeeder::class);
 
     }
 }

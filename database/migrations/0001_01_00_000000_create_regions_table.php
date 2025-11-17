@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('regions', function (Blueprint $table) {
             $table->id();
-            $table->integer('sub_region_id');
+            $table->integer('sub_region_id')->nullable();
             $table->string('name',100);
             $table->json('title');
             $table->timestamps();

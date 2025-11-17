@@ -28,7 +28,8 @@ class UserController extends Controller
                 $join->on('u.dir_demand_id', '=', 'd.id')
                     ->where('u.user_id', '=', $user->id);
             })
-            ->select('d.id', 'd.name', 'u.path')
+            ->select('d.id', 'd.name', 'u.path', 'd.title','d.sort_number')
+            ->orderBy('d.sort_number','asc')
             ->get();
         return response()->json($userDocs);
     }
@@ -54,10 +55,12 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show()
+    public function show($filepath)
     {
         $user = auth('api')->user();
-        $doc = DocUser::where('user_id', $user->id)->firstOrFail();
+        $doc = DocUser::where('user_id', $user->id)
+            ->where('path', $filepath)
+            ->firstOrFail();
 
         return response()->file(storage_path('app/private/' . $doc->path));
     }
