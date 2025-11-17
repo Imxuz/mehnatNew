@@ -12,9 +12,11 @@ use App\Http\Controllers\DirDemandController;
 
 
 
+
 Route::resource('region', RegionController::class);
 Route::resource('dir_demands', DirDemandController::class);
 Route::get('/auth/user', [AuthUserController::class, 'userAdmin']);
+
 Route::post('user/create', [AuthUserController::class, 'create']);
 Route::post('user/resend-code', [AuthUserController::class, 'resendCode']);
 Route::post('user/verify-code', [AuthUserController::class, 'verifyCode']);
