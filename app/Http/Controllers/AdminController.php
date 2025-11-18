@@ -9,6 +9,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\TimeImport;
+use App\Exports\TimeExport;
 
 class AdminController extends Controller
 {
@@ -86,5 +89,25 @@ class AdminController extends Controller
             'expires_in' => auth('apiAdmin')->factory()->getTTL() * 60,
             'user'         => auth('apiAdmin')->user(),
         ]);
+    }
+
+    public function delayWorker(Request $request){
+
+
+
+        $import = new TimeImport;
+        Excel::import($import, $request->file('excel_file'));
+
+        $start = $request->start;
+        $end   = $request->end;
+
+        $filtered = collect($import->items)->filter(function ($value) use ($start, $end) {
+            return strtotime($value) >= strtotime($start) &&
+                strtotime($value) <= strtotime($end);
+        });
+        return response()->json($filtered);
+
+
+        return Excel::download(new TimeExport($filtered), 'filtered.xlsx');
     }
 }

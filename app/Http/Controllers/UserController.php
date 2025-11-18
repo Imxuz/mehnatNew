@@ -28,7 +28,7 @@ class UserController extends Controller
                 $join->on('u.dir_demand_id', '=', 'd.id')
                     ->where('u.user_id', '=', $user->id);
             })
-            ->select('d.id', 'd.name', 'u.path', 'd.title','d.sort_number')
+            ->select('u.id as id','u.check','d.id as dir_demand_id', 'd.name', 'u.path', 'd.title','d.sort_number')
             ->orderBy('d.sort_number','asc')
             ->get();
         return response()->json($userDocs);

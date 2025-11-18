@@ -41,6 +41,7 @@ Route::middleware('auth.jwt')->group(function () {
 Route::post('admin/login', [AdminController::class,'login']);
 Route::prefix('admin')->middleware('auth.admin.jwt')->group(function () {
     Route::resource('data', AdminController::class);
+    Route::post('delayWorker', [AdminController::class,'delayWorker']);
     Route::resource('vacancy', VacancyController::class);
 });
 
