@@ -91,23 +91,58 @@ class AdminController extends Controller
         ]);
     }
 
-    public function delayWorker(Request $request){
-
-
-
+    public function delayWorker(Request $request)
+    {
         $import = new TimeImport;
         Excel::import($import, $request->file('excel_file'));
 
-        $start = $request->start;
-        $end   = $request->end;
+        $startDate = strtotime($request->start . " 00:00:00");
+        $endDate   = strtotime($request->end   . " 23:59:59");
 
-        $filtered = collect($import->items)->filter(function ($value) use ($start, $end) {
-            return strtotime($value) >= strtotime($start) &&
-                strtotime($value) <= strtotime($end);
+        // Dynamic vaqtlar
+        $ms = $request->morning_start;  // 08:10
+        $me = $request->morning_end;    // 09:00
+
+        $es = $request->evening_start;  // 16:00
+        $ee = $request->evening_end;    // 17:00
+
+        // Dynamic statuslar
+        $dayStatus   = $request->day_status;     // masalan: "Вход"
+        $nightStatus = $request->night_status;   // masalan: "Выход"
+
+        $filtered = collect($import->items)->filter(function ($row)
+        use ($startDate, $endDate, $dayStatus, $nightStatus, $ms, $me, $es, $ee) {
+
+            // 1. vaqtni timestampga aylantiramiz
+            $time = strtotime($row['time']);
+            if (!$time) return false;
+
+            // 2. Sana filtri
+            if ($time < $startDate || $time > $endDate) {
+                return false;
+            }
+
+            // 3. Status bo‘yicha tekshirish
+            $status = $row['status'];
+
+            // 4. Faqat vaqt (HH:MM)
+            $clock = date('H:i', $time);
+
+            // Kunduzgi moslik: status + vaqt diapazoni
+            $isDay = ($status === $dayStatus) &&
+                ($clock >= $ms && $clock <= $me);
+
+            // Kechki moslik: status + vaqt diapazoni
+            $isNight = ($status === $nightStatus) &&
+                ($clock >= $es && $clock <= $ee);
+
+            return $isDay || $isNight;
         });
+
         return response()->json($filtered);
 
-
-        return Excel::download(new TimeExport($filtered), 'filtered.xlsx');
+        // Agar excel yuklab berish kerak bo‘lsa:
+        // return Excel::download(new TimeExport($filtered), 'filtered.xlsx');
     }
+
 }
