@@ -15,6 +15,7 @@ class Region extends Model
     public function children()
     {
         return $this->hasMany(Region::class, 'sub_region_id', 'id')
+            ->select('id','title', 'sub_region_id')
             ->with('children');
     }
 }

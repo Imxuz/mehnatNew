@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Http\Requests\UpdateUserRequest;
 use App\Services\UserService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -44,6 +45,8 @@ class UserController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
         $result = $this->userService->storeUserFiles($user, $request);
+
+
         return response()->json([
             'message' => 'User files uploaded successfully',
             'data' => $result
@@ -58,11 +61,26 @@ class UserController extends Controller
     public function show($filepath)
     {
         $user = auth('api')->user();
-        $doc = DocUser::where('user_id', $user->id)
-            ->where('path', $filepath)
-            ->firstOrFail();
+        $admin = auth('apiAdmin')->user();
+        $filepathUser = '';
+        if ($user && $user->id){
+            $doc = DocUser::where('user_id', $user->id)
+                ->where('path', $filepath)
+                ->firstOrFail();
+            $filepathUser=$doc->path;
+        }elseif ($admin &&$admin->id){
+            $filepathUser = $filepath;
+        }
 
-        return response()->file(storage_path('app/private/' . $doc->path));
+
+        $file = storage_path('app/private/' . $filepathUser);
+
+        // Cache control headers qo'shish
+        return response()->file($file, [
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ]);
     }
 
     /**

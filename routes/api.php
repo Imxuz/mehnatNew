@@ -9,12 +9,14 @@ use App\Http\Controllers\ClickController;
 use App\Http\Controllers\UserVacancyController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\DirDemandController;
+use App\Http\Controllers\OccupationController;
 
 
 
 
 Route::resource('region', RegionController::class);
 Route::resource('dir_demands', DirDemandController::class);
+Route::resource('occupation', OccupationController::class);
 Route::get('/auth/user', [AuthUserController::class, 'userAdmin']);
 
 Route::post('user/create', [AuthUserController::class, 'create']);
@@ -29,11 +31,9 @@ Route::post('/logout', [AuthUserController::class, 'logout']);
 Route::middleware('auth.jwt')->group(function () {
     Route::resource('user', UserController::class);
     Route::resource('click', ClickController::class);
-    Route::get('docs/{filepath}', [UserController::class,'show'])->where('filepath', '.*');;
+    Route::get('docs/{filepath}', [UserController::class,'show'])->where('filepath', '.*');
     Route::resource('userVacancy', UserVacancyController::class);
     Route::post('click/vacancyInfo',[ UserVacancyController::class, 'userVacancy']);
-
-
 });
 
 
@@ -43,6 +43,7 @@ Route::prefix('admin')->middleware('auth.admin.jwt')->group(function () {
     Route::resource('data', AdminController::class);
     Route::post('delayWorker', [AdminController::class,'delayWorker']);
     Route::resource('vacancy', VacancyController::class);
+    Route::get('docs/{filepath}', [UserController::class,'show'])->where('filepath', '.*');
 });
 
 
