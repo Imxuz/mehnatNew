@@ -25,7 +25,7 @@ class StoreUserAuthRequest extends FormRequest
     {
         return [
             "name" => "required|string|min:3|max:150",
-            "phone" => ["required", "regex:/^\+998[0-9]{9}$/", "unique:users,phone"],
+            "phone" => ["required", "regex:/^998[0-9]{9}$/", "unique:users,phone"],
             "password" => [
                 "required",
                 "confirmed",
