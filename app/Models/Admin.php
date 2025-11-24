@@ -34,4 +34,6 @@ class Admin extends Authenticatable implements JWTSubject
             'password' => 'hashed',
         ];
     }
+
+    protected $guard_name = 'apiadmin';
 }

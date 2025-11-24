@@ -23,7 +23,7 @@ class StoreVacancyRequest extends FormRequest
     {
         return [
             "region_id"      => "required|integer",
-            "dir_demand_id"  => "required|integer",
+//            "dir_demand_id"  => "required|integer",
             "occupation_id"  => "required|integer",
             "open_At"        => "required|date_format:Y-m-d H:i:s",
             "close_At"       => "required|date_format:Y-m-d H:i:s",
