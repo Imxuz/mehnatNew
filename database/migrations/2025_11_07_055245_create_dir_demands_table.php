@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string("name",100);
             $table->integer('sort_number');
             $table->enum('type', ['text', 'file']);
+            $table->enum('formType', ['input', 'select','checkbox']);
             $table->timestamps();
         });
     }

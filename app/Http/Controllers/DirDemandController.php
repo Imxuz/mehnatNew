@@ -22,7 +22,7 @@ class DirDemandController extends Controller
      */
     public function store(StoreDirDemandRequest $request)
     {
-        //
+        DirDemand::create($request->validated());
     }
 
     /**
@@ -38,7 +38,7 @@ class DirDemandController extends Controller
      */
     public function update(UpdateDirDemandRequest $request, DirDemand $dirDemand)
     {
-        //
+        $dirDemand->update($request->validated());
     }
 
     /**

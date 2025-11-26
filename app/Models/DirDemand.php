@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class DirDemand extends Model
 {
     protected $fillable = [
-        'title', 'name','sort_number','type',
+        'title', 'name','sort_number','type','formType'
     ];
     public function adder_demands(){
         return $this->hasMany(AdderDemand::class,'dir_demand_id', 'id');

@@ -15,7 +15,7 @@ class VacancyController extends Controller
      * Display a listing of the resource.
      */
     public function index(){
-        $vacancies = Vacancy::with('demands.dir_demand')->get();
+        $vacancies = Vacancy::with('demands.dir_demand','occupation','region')->get();
         return response()->json($vacancies);
     }
 
@@ -24,6 +24,7 @@ class VacancyController extends Controller
      */
     public function store(StoreVacancyRequest $request)
     {
+        return response()->json($request);
         $admin = auth('apiAdmin')->user();
 
         DB::beginTransaction();

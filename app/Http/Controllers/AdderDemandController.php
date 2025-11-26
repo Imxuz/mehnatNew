@@ -13,7 +13,8 @@ class AdderDemandController extends Controller
      */
     public function index()
     {
-        //
+        $adder_demands = AdderDemand::with('dir_demand')->get();
+        return response()->json($adder_demands);
     }
 
     /**
@@ -21,7 +22,7 @@ class AdderDemandController extends Controller
      */
     public function store(StoreAdderDemandRequest $request)
     {
-        //
+        AdderDemand::create($request->validated());
     }
 
     /**
@@ -37,7 +38,7 @@ class AdderDemandController extends Controller
      */
     public function update(UpdateAdderDemandRequest $request, AdderDemand $adderDemand)
     {
-        //
+        AdderDemand::update($request->validated());
     }
 
     /**
