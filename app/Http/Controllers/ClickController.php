@@ -18,7 +18,7 @@ class ClickController extends Controller
      */
     public function index()
     {
-        //
+
     }
 
     /**
@@ -27,6 +27,12 @@ class ClickController extends Controller
     public function store(StoreClickRequest $request)
     {
         $user = auth('api')->user();
+        if (!$user->id){
+            return response()->json([
+                'status' => false,
+                'message' => 'Bunday foydalanuvchi mavjud emas.',
+            ], 400);
+        }
         $vacancy = Vacancy::where('id', $request->vacancy_id)
             ->where('open_at', '<=', Carbon::now())
             ->where('close_at', '>=', Carbon::now())
@@ -67,10 +73,17 @@ class ClickController extends Controller
      */
     public function show($id)
     {
+        $user = auth('api')->user();
+        if (!$user->id){
+            return response()->json([
+                'status' => false,
+                'message' => 'Bunday foydalanuvchi mavjud emas.',
+            ], 400);
+        }
         if (!is_numeric($id) || intval($id) != $id) {
             return response()->json(['error' => 'Invalid ID'], 400);
         }
-        $vacancies = Vacancy::where('id', $id)->with('demands.dir_demand')->get();
+        $vacancies = Vacancy::where('id', $id)->with('demands.dir_demand','occupation','region')->get();
         return response()->json($vacancies);
     }
 

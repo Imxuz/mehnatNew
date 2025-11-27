@@ -24,11 +24,8 @@ class VacancyController extends Controller
      */
     public function store(StoreVacancyRequest $request)
     {
-        return response()->json($request);
         $admin = auth('apiAdmin')->user();
-
         DB::beginTransaction();
-
         try {
             $vacancy = Vacancy::create([
                 'region_id'      => $request->region_id,
