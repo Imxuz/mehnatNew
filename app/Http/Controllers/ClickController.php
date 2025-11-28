@@ -19,6 +19,7 @@ class ClickController extends Controller
     public function index()
     {
 
+
     }
 
     /**

@@ -16,9 +16,9 @@ class UserVacancyController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        //
+    public function index(){
+        $vacancies = Vacancy::with('demands.dir_demand','occupation','region')->get();
+        return response()->json($vacancies);
     }
 
     /**

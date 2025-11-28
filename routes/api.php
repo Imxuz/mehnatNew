@@ -25,6 +25,8 @@ Route::post('user/verify-code', [AuthUserController::class, 'verifyCode']);
 Route::post('/login', [AuthUserController::class, 'login']);
 Route::post('/refresh', [AuthUserController::class, 'refresh']);
 Route::post('/logout', [AuthUserController::class, 'logout']);
+Route::get('vacancy', [UserVacancyController::class,"index"]);
+
 
 
 
@@ -33,6 +35,7 @@ Route::middleware('auth.jwt')->group(function () {
     Route::resource('click', ClickController::class);
     Route::get('docs/{filepath}', [UserController::class,'show'])->where('filepath', '.*');
     Route::resource('userVacancy', UserVacancyController::class);
+
     Route::post('click/vacancyInfo',[ UserVacancyController::class, 'userVacancy']);
 });
 

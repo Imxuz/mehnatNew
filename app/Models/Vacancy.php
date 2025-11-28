@@ -38,7 +38,7 @@ class Vacancy extends Model
     public function region()
     {
         return $this->hasOne(Region::class, 'id', 'region_id')
-            ->select('id', 'title');
+            ->select('id', 'title','sub_region_id');
     }
 
 }
