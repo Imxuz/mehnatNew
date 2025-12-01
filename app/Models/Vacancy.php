@@ -38,7 +38,19 @@ class Vacancy extends Model
     public function region()
     {
         return $this->hasOne(Region::class, 'id', 'region_id')
-            ->select('id', 'title','sub_region_id');
+            ->select('id', 'title', 'sub_region_id')
+            ->with('parentRegion');
+    }
+    public function oClick()
+    {
+        $user = auth('api')->user();
+
+        if (!$user) {
+            return $this->hasOne(Click::class)->whereRaw('1 = 0');
+        }
+        return $this->hasOne(Click::class, 'vacancy_id', 'id')
+            ->select('id', 'vacancy_id', 'user_id')
+            ->where('user_id', $user->id);
     }
 
 }

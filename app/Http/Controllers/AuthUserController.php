@@ -71,6 +71,7 @@ class AuthUserController extends Controller
 
     public function login(Request $request)
     {
+//        return response()->json(123);
         $validator = Validator::make($request->all(), [
             'phone' => ['required', 'regex:/^998[0-9]{9}$/', 'digits:12'],
             "password" => ["required", "string:100"],

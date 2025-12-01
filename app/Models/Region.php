@@ -18,5 +18,11 @@ class Region extends Model
             ->select('id','title', 'sub_region_id')
             ->with('children');
     }
+
+    public function parentRegion()
+    {
+        return $this->belongsTo(Region::class, 'sub_region_id', 'id')
+            ->select('id', 'title');
+    }
 }
 

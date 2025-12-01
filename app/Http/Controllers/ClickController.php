@@ -44,6 +44,14 @@ class ClickController extends Controller
                 'message' => 'Bu vakansiya hozir faol emas yoki muddati tugagan.',
             ], 400);
         }
+        $ClickCheck = Click::where('user_id', $user->id)->where('vacancy_id',$request->vacancy_id)->first();
+        if ($ClickCheck) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Siz ushbu arizaga so\'rov qoldirgansiz.',
+            ], 400);
+        }
+
         $demands = Demand::where('vacancy_id',$request->vacancy_id)->pluck('dir_demand_id');
         $docUser = DocUser::where('user_id',$user->id)->pluck('dir_demand_id');
         $missingDemands = $demands->diff($docUser);
@@ -84,7 +92,7 @@ class ClickController extends Controller
         if (!is_numeric($id) || intval($id) != $id) {
             return response()->json(['error' => 'Invalid ID'], 400);
         }
-        $vacancies = Vacancy::where('id', $id)->with('demands.dir_demand','occupation','region')->get();
+        $vacancies = Vacancy::where('id', $id)->with('demands.dir_demand','occupation','region')->first();
         return response()->json($vacancies);
     }
 
