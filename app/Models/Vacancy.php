@@ -17,6 +17,7 @@ class Vacancy extends Model
     ];
 
 
+
     public function demands()
     {
         return $this->hasMany(Demand::class, 'vacancy_id', 'id')
