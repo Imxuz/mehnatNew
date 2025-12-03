@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUserRequest;
+use App\Models\DirDemand;
 use App\Models\DocUser;
 use App\Models\User;
 use App\Http\Requests\UpdateUserRequest;
@@ -24,13 +25,22 @@ class UserController extends Controller
     public function index()
     {
         $user = auth('api')->user();
-        $userDocs = DB::table('dir_demands as d')
+        $userDocs = DirDemand::with(['adder_demands'])
             ->leftJoin('doc_users as u', function ($join) use ($user) {
-                $join->on('u.dir_demand_id', '=', 'd.id')
+                $join->on('u.dir_demand_id', '=', 'dir_demands.id')
                     ->where('u.user_id', '=', $user->id);
             })
-            ->select('u.id as id','u.check','d.id as dir_demand_id', 'd.name', 'u.path', 'd.title','d.sort_number')
-            ->orderBy('d.sort_number','asc')
+            ->select(
+                'u.id as id',
+                'u.check',
+                'dir_demands.id as dir_demand_id',
+                'dir_demands.name',
+                'u.path',
+                'dir_demands.title',
+                'dir_demands.type',
+                'dir_demands.sort_number'
+            )
+            ->orderBy('dir_demands.sort_number', 'asc')
             ->get();
         return response()->json($userDocs);
     }

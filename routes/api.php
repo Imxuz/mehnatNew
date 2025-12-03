@@ -10,7 +10,7 @@ use App\Http\Controllers\UserVacancyController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\DirDemandController;
 use App\Http\Controllers\OccupationController;
-
+use \App\Http\Controllers\FaqsController;
 
 
 
@@ -26,6 +26,7 @@ Route::post('/login', [AuthUserController::class, 'login']);
 Route::post('/refresh', [AuthUserController::class, 'refresh']);
 Route::post('/logout', [AuthUserController::class, 'logout']);
 Route::get('vacancy', [UserVacancyController::class,"index"]);
+Route::resource('faqs', FaqsController::class);
 
 
 
