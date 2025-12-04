@@ -11,16 +11,15 @@ class UserService
 {
     public function storeUserFiles($user, $request)
     {
-
-
-
+        $adder_demands_id = null;
+        $path =null;
         $uniqid =$user->unique_id==null? Str::uuid():$user->unique_id;
         $count=0;
         if (!$request->id) {
             $count = DocUser::where('user_id', $user->id)
                 ->where('dir_demand_id', $request->dir_demand_id)
                 ->count();
-        }{
+        }else{
         $pathRemover = DocUser::select('path')->where('id', $request->id)
             ->where('user_id', $user->id)->first();
         if ($pathRemover&&$pathRemover->path){
@@ -47,6 +46,9 @@ class UserService
                     'private'
                 );
 
+                if ($request->adder_demands_id){
+                    $adder_demands_id = $request->adder_demands_id;
+                }
 
                 $doc_id = DocUser::updateOrCreate(
                     [
@@ -56,6 +58,7 @@ class UserService
                         'user_id' => $user->id,
                         'dir_demand_id' => $request->dir_demand_id,
                         'path' => $path,
+                        'adder_demands_id'=>null,
                     ]
                 )->id;
 
@@ -70,6 +73,22 @@ class UserService
                 curl_setopt($ch, CURLOPT_NOBODY, true);
                 curl_exec($ch);
                 curl_close($ch);
+            }else {
+                if ($request->adder_demands_id){
+                DocUser::updateOrCreate(
+                    [
+                        'id' => $request->id,
+                    ],
+                    [
+                        'user_id' => $user->id,
+                        'dir_demand_id' => $request->dir_demand_id,
+                        'adder_demands_id'=>$request->adder_demands_id,
+                        'path'=>null,
+                    ]
+                );
+                }
+
+
             }
 
 

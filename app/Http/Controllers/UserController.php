@@ -24,25 +24,23 @@ class UserController extends Controller
     public function __construct(private UserService $userService){}
     public function index()
     {
-        $user = auth('api')->user();
-        $userDocs = DirDemand::with(['adder_demands'])
-            ->leftJoin('doc_users as u', function ($join) use ($user) {
+        $userId = auth('api')->id();
+
+        $dir_docs_demands = DirDemand::with('adder_demands')
+            ->leftJoin('doc_users as u', function ($join) use ($userId) {
                 $join->on('u.dir_demand_id', '=', 'dir_demands.id')
-                    ->where('u.user_id', '=', $user->id);
+                    ->where('u.user_id', '=', $userId);
             })
             ->select(
-                'u.id as id',
+                'dir_demands.*',
+                'u.id as doc_id',
                 'u.check',
-                'dir_demands.id as dir_demand_id',
-                'dir_demands.name',
                 'u.path',
-                'dir_demands.title',
-                'dir_demands.type',
-                'dir_demands.sort_number'
+                'u.adder_demands_id'
             )
             ->orderBy('dir_demands.sort_number', 'asc')
             ->get();
-        return response()->json($userDocs);
+        return response()->json($dir_docs_demands);
     }
 
     /**
@@ -55,8 +53,6 @@ class UserController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
         $result = $this->userService->storeUserFiles($user, $request);
-
-
         return response()->json([
             'message' => 'User files uploaded successfully',
             'data' => $result

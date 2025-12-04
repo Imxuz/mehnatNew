@@ -15,7 +15,7 @@ class VacancyController extends Controller
      * Display a listing of the resource.
      */
     public function index(){
-        $vacancies = Vacancy::with('demands.dir_demand','occupation','region')->get();
+        $vacancies = Vacancy::with('demands.dir_demand','occupation','region')->orderBy('created_at','desc')->get();
         return response()->json($vacancies);
     }
 

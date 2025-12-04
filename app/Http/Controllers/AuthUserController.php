@@ -156,5 +156,28 @@ class AuthUserController extends Controller
         ]);
     }
 
+    public function userRegion(Request $request)
+    {
+        $user = auth('api')->user();
+        if (!$user) {
+            return response()->json(['error' => 'Foydalanuvchi topilmadi'], 401);
+        }
+        if (!$request->has('region_id') || empty($request->region_id)) {
+            return response()->json(['error' => 'Region ID kiritilmadi'], 400);
+        }
+        try {
+            $user->update(['region_id' => $request->region_id]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Region muvaffaqiyatli yangilandi',
+                'region_id' => $user->region_id
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Yangilashda xatolik: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 
 }
