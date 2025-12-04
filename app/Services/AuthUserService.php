@@ -2,6 +2,7 @@
 namespace App\Services;
 use App\Models\PhoneAttempt;
 use App\models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -17,16 +18,24 @@ class AuthUserService
                     'phone' => ['This phone number is already verified.'],
                 ]);
             }
+            $verificationCode = mt_rand(100000, 999999);
+
             $user->update([
                 'name' => $data['name'],
                 'password' => Hash::make($data['password']),
-                'verification_code' => mt_rand(100000, 999999),
+                'verification_code' => $verificationCode,
+                'verification_code_expires_at' => Carbon::now()->addMinutes(10),
             ]);
         } else {
+            $verificationCode = mt_rand(100000, 999999);
+
             $data['password'] = Hash::make($data['password']);
-            $data['verification_code'] = mt_rand(100000, 999999);
+            $data['verification_code'] = $verificationCode;
+            $data['verification_code_expires_at'] = Carbon::now()->addMinutes(10);
             $data['is_verified'] = false;
+
             $user = User::create($data);
+
         }
         $this->smsService->sendVerificationCode($user->phone, $user->verification_code);
         return $user;

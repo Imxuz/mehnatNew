@@ -58,20 +58,20 @@ class DirDemandSeeder extends Seeder
                 'created_at' => '2025-10-30 03:23:42',
                 'updated_at' => '2025-10-30 03:23:42',
             ],
+//            [
+//                'id' => 5,
+//                'title' => json_encode([
+//                    'ru' => 'Оценка информации о кандидате',
+//                    'uz' => "Nomzodning o'zi haqidagi ma'lumotini baholash",
+//                ], JSON_UNESCAPED_UNICODE),
+//                'name' => '',
+//                'sort_number' => 5,
+//                'type' => 'text',
+//                'created_at' => '2025-10-30 03:23:42',
+//                'updated_at' => '2025-10-30 03:23:42',
+//            ],
             [
                 'id' => 5,
-                'title' => json_encode([
-                    'ru' => 'Оценка информации о кандидате',
-                    'uz' => "Nomzodning o'zi haqidagi ma'lumotini baholash",
-                ], JSON_UNESCAPED_UNICODE),
-                'name' => '',
-                'sort_number' => 5,
-                'type' => 'text',
-                'created_at' => '2025-10-30 03:23:42',
-                'updated_at' => '2025-10-30 03:23:42',
-            ],
-            [
-                'id' => 6,
                 'title' => json_encode([
                     'ru' => 'Оценка военной службы',
                     'uz' => 'Harbiy xizmatni baholash',
@@ -83,7 +83,7 @@ class DirDemandSeeder extends Seeder
                 'updated_at' => '2025-10-30 03:23:42',
             ],
             [
-                'id' => 7,
+                'id' => 6,
                 'title' => json_encode([
                     'ru' => 'Место проживания кандидата',
                     'uz' => 'Nomzodning yashash manzili',
@@ -95,7 +95,7 @@ class DirDemandSeeder extends Seeder
                 'updated_at' => '2025-10-30 03:23:42',
             ],
             [
-                'id' => 8,
+                'id' => 7,
                 'title' => json_encode([
                     'ru' => 'Паспорт кандидата',
                     'uz' => 'Nomzodning passport',
@@ -107,7 +107,7 @@ class DirDemandSeeder extends Seeder
                 'updated_at' => '2025-11-10 12:18:11',
             ],
             [
-                'id' => 9,
+                'id' => 8,
                 'title' => json_encode([
                     'ru' => 'Удостоверение водителя трактора',
                     'uz' => 'Traktor mashinist guvohnomasi',

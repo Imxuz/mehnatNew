@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreUserAuthRequest;
 use App\Models\User;
 use App\Services\AuthUserService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -60,9 +61,17 @@ class AuthUserController extends Controller
         if (!$user) {
             return response()->json(['message' => 'User not found'], 404);
         }
+        if ($user->verification_code_expires_at &&
+            Carbon::now()->greaterThan($user->verification_code_expires_at)) {
+            return response()->json([
+                'message' => 'Verification code expired'
+            ], 400);
+        }
+
         if ($user->verification_code === $request->code) {
             $user->is_verified = true;
             $user->verification_code = null;
+            $user->verification_code_expires_at = null;
             $user->save();
             return response()->json(['message' => 'User verified successfully']);
         }

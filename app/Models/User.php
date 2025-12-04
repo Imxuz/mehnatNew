@@ -29,6 +29,7 @@ class User extends Authenticatable implements JWTSubject
         'region_id',
         'password',
         'is_verified',
+        'verification_code_expires_at',
     ];
 
     /**
@@ -39,6 +40,7 @@ class User extends Authenticatable implements JWTSubject
     protected $hidden = [
         'password',
         'remember_token',
+        'verification_code',
     ];
     public function getJWTIdentifier()
     {

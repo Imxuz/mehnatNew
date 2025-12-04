@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('verification_code', 6)->nullable();
             $table->string('password');
             $table->boolean('is_verified')->default(false);
+            $table->timestamp('verification_code_expires_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

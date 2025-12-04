@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Rules\Regex;
 class StoreUserAuthRequest extends FormRequest
@@ -25,7 +26,11 @@ class StoreUserAuthRequest extends FormRequest
     {
         return [
             "name" => "required|string|min:3|max:150",
-            "phone" => ["required", "regex:/^998[0-9]{9}$/", "unique:users,phone"],
+            'phone' => [
+                'required',
+                "regex:/^998[0-9]{9}$/",
+                Rule::unique('users', 'phone')->where('is_verified', true),
+            ],
             "password" => [
                 "required",
                 "confirmed",
