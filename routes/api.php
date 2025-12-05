@@ -20,7 +20,7 @@ Route::resource('occupation', OccupationController::class);
 Route::get('/auth/user', [AuthUserController::class, 'userAdmin']);
 
 Route::post('user/create', [AuthUserController::class, 'create']);
-Route::post('user/region', [AuthUserController::class, 'userRegion']);
+Route::post('userUpdate', [AuthUserController::class, 'userUpdate']);
 Route::post('resend-code', [AuthUserController::class, 'resendCode']);
 Route::post('verify-code', [AuthUserController::class, 'verifyCode']);
 Route::post('/login', [AuthUserController::class, 'login']);

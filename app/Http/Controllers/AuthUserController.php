@@ -132,7 +132,9 @@ class AuthUserController extends Controller
 
     public function userAdmin()
     {
-        $user = auth('api')->user();
+        $userId = auth('api')->id();
+        $user = User::where('id',$userId)->with('region')->first();
+
         $admin = auth('apiAdmin')->user();
 
         if ($user) {
@@ -165,21 +167,32 @@ class AuthUserController extends Controller
         ]);
     }
 
-    public function userRegion(Request $request)
+    public function userUpdate(Request $request)
     {
         $user = auth('api')->user();
         if (!$user) {
             return response()->json(['error' => 'Foydalanuvchi topilmadi'], 401);
         }
-        if (!$request->has('region_id') || empty($request->region_id)) {
-            return response()->json(['error' => 'Region ID kiritilmadi'], 400);
+        if (!$request->hasAny(['region_id', 'pinfl'])) {
+            return response()->json(['error' => 'Hech qanday maydon kiritilmadi'], 400);
+        }
+        $data = [];
+        if ($request->has('region_id')) {
+            $data['region_id'] = $request->region_id;
+        }
+        if ($request->has('pinfl')) {
+            if (!preg_match('/^[0-9]{14}$/', $request->pinfl)) {
+                return response()->json(['error' => 'PINFL noto\'g\'ri formatda. 14 ta raqam bo\'lishi kerak'], 400);
+            }
+            $data['pinfl'] = $request->pinfl;
         }
         try {
-            $user->update(['region_id' => $request->region_id]);
+            $user->update($data);
+
             return response()->json([
                 'success' => true,
-                'message' => 'Region muvaffaqiyatli yangilandi',
-                'region_id' => $user->region_id
+                'message' => 'Ma\'lumotlar muvaffaqiyatli yangilandi',
+                'updated_fields' => $data,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -187,6 +200,7 @@ class AuthUserController extends Controller
             ], 500);
         }
     }
+
 
 
 }

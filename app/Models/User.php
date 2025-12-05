@@ -63,4 +63,8 @@ class User extends Authenticatable implements JWTSubject
             'password' => 'hashed',
         ];
     }
+
+    public function region(){
+        return $this->hasOne(Region::class, 'id','region_id');
+    }
 }

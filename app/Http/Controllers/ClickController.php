@@ -18,6 +18,12 @@ class ClickController extends Controller
      */
     public function index()
     {
+        $userId = auth('api')->id();
+        $clickVacancies = Click:: where('user_id', $userId)->pluck('vacancy_id');
+        $userVacancies = Vacancy::with('demands.dir_demand','occupation','region','oClick')
+            ->whereIn('id',$clickVacancies)
+            ->orderBy('created_at','desc')->get();
+        return response()->json($userVacancies);
 
 
     }
