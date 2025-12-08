@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Demand;
+use App\Models\Permission;
+use App\Models\PermissionRole;
 use App\Models\Vacancy;
 use App\Http\Requests\StoreVacancyRequest;
 use App\Http\Requests\UpdateVacancyRequest;
 use App\Models\VacancyLog;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class VacancyController extends Controller
@@ -148,9 +151,24 @@ class VacancyController extends Controller
     {
         //
     }
-    public function publication(Vacancy $vacancy)
+    public function publication(Request $request)
     {
+
         $admin = auth('apiAdmin')->user();
-        $vacancy->update(['publish_admin_id'=>$admin->id]);
+        if (!$admin) {
+            return response()->json(['error' => 'Admin not authenticated'], 401);
+        }
+
+        $vacancy = Vacancy::find($request->id);
+
+        if (!$vacancy) {
+            return response()->json(['error' => 'Vacancy not found'], 404);
+        }elseif ($vacancy->publish_admin_id){
+            return response()->json(['error' => 'Ushbu vakansiya publicatsiya qilingan'], 404);
+        }
+        $vacancy->publish_admin_id = $admin->id;
+        $vacancy->save();
+
+        return response()->json($vacancy);
     }
 }
