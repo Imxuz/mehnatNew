@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('path')->nullable();
             $table->string('adder_demands_id')->nullable();
             $table->boolean('check')->nullable(); //for AI check results
-            $table->string('doc_info')->nullable(); //for AI check results
+            $table->text('doc_info')->nullable(); //for AI check results
             $table->string('description')->nullable(); //for AI check results
 
             $table->timestamps();

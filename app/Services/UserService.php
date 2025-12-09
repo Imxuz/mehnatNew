@@ -58,6 +58,7 @@ class UserService
                         'user_id' => $user->id,
                         'dir_demand_id' => $request->dir_demand_id,
                         'path' => $path,
+                        'check'=>null,
                         'adder_demands_id'=>null,
                     ]
                 )->id;

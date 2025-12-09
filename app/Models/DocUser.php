@@ -11,6 +11,7 @@ class DocUser extends Model
         'dir_demand_id',
         'path',
         'adder_demands_id',
+        'check',
 
     ];
 
