@@ -16,9 +16,9 @@ return new class extends Migration
             $table->unsignedInteger('region_id');
             $table->foreignId('admin_id')->constrained();
             $table->foreignId('occupation_id')->constrained();
+            $table->integer('publication')->default(null);
             $table->timestamp('open_at')->nullable();
             $table->timestamp('close_at')->nullable();
-            $table->integer('publish_admin_id')->default(null);
 
             $table->softDeletes();
             $table->timestamps();

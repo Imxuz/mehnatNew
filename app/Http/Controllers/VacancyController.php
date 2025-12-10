@@ -163,10 +163,10 @@ class VacancyController extends Controller
 
         if (!$vacancy) {
             return response()->json(['error' => 'Vacancy not found'], 404);
-        }elseif ($vacancy->publish_admin_id){
-            return response()->json(['error' => 'Ushbu vakansiya publicatsiya qilingan'], 404);
+        }elseif ($vacancy->publication){
+            return response()->json(['error' => 'Ushbu vakansiya publicatsiya qilingan'], 400);
         }
-        $vacancy->publish_admin_id = $admin->id;
+        $vacancy->publication = $admin->id;
         $vacancy->save();
 
         return response()->json($vacancy);

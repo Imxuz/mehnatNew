@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\OccupationsImport;
 use App\Models\Occupation;
 use App\Http\Requests\StoreOccupationRequest;
 use App\Http\Requests\UpdateOccupationRequest;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OccupationController extends Controller
 {
@@ -20,9 +23,18 @@ class OccupationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreOccupationRequest $request)
+    public function store(Request $request)
     {
-        //
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls',
+        ]);
+
+
+        Excel::import(new OccupationsImport, $request->file('file'));
+
+        return response()->json([
+            'message' => 'Occupationlar muvaffaqiyatli import qilindi'
+        ]);
     }
 
     /**

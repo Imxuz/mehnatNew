@@ -36,4 +36,22 @@ class Admin extends Authenticatable implements JWTSubject
     }
 
     protected $guard_name = 'apiadmin';
+
+    public function roles()
+    {
+        return $this->belongsToMany(
+            Role::class,
+            'role_admin',
+            'admin_id',
+            'role_id'
+        );
+    }
+    public function hasPermission($permission)
+    {
+        return $this->roles()
+            ->whereHas('permissions', function ($q) use ($permission) {
+                $q->where('name', $permission);
+            })
+            ->exists();
+    }
 }

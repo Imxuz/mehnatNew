@@ -132,10 +132,16 @@ class AuthUserController extends Controller
 
     public function userAdmin()
     {
+
         $userId = auth('api')->id();
         $user = User::where('id',$userId)->with('region')->first();
 
         $admin = auth('apiAdmin')->user();
+        if ($admin){
+            $admin->load('roles.permissions');
+        }
+
+
 
         if ($user) {
             return response()->json([
@@ -144,7 +150,15 @@ class AuthUserController extends Controller
             ]);
         } elseif ($admin) {
             return response()->json([
-                'user'=>$admin,
+                'user'=>[
+                    'id' => $admin->id,
+                    'name' => $admin->name,
+                    'middle_name' => $admin->middle_name,
+                    'region_id' => $admin->region_id,
+                    'roles' => $admin->roles->pluck('name'),
+                    'role_id' => $admin->role_id,
+                    'permissions' => $admin->roles->flatMap->permissions->pluck('name')->unique()->values(),
+                ],
                 'this'=>'admin',
             ]);
         } else {
