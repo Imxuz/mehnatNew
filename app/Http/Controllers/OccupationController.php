@@ -60,4 +60,13 @@ class OccupationController extends Controller
     {
         //
     }
+
+    public function searchOccupation(Request $request)
+    {
+        $query = Occupation::query();
+        if ($request->searchOccupation) {
+            $query->where('occupation', 'like', '%' . $request->searchOccupation . '%');
+        }
+        return response()->json($query->get());
+    }
 }
