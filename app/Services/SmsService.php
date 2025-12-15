@@ -10,17 +10,17 @@ class SmsService
         $phone = Str::of($phone)
             ->remove(['+', '-', ' '])
             ->prepend('0');
-        $query = 'http://173.45.45.45/playsms/index.php';
+        $query = 'http://172.16.0.195/playsms/index.php';
         $query .= '?app=ws&u=' . urlencode('orisp');
-        $query .= '&p=' . urlencode('rtrtrt1212**');
-        $query .= '&h=' . urlencode('dfgfdgfdgfdewrewrew');
+        $query .= '&p=' . urlencode('oror1414*');
+        $query .= '&h=' . urlencode('b6b577eb826c4527f837a50abea577ea');
         $query .= '&op=' . urlencode('pv');
         $query .= '&unicode=1';
         $query .= '&to=' . urlencode($phone);
 
         $message = App::isLocale('ru')
-            ? 'Код верификации: ' . $code
-            : 'Tasdiqlash kodi: ' . $code;
+            ? 'НГМК Код верификации: '.$code
+            : 'NKMK tasdiqlash kodi: '.$code;
 
         $query .= '&msg=' . urlencode($message);
         try {

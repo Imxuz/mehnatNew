@@ -88,17 +88,13 @@ class ClickController extends Controller
      */
     public function show($id)
     {
-        $user = auth('api')->user();
-        if (!$user->id){
-            return response()->json([
-                'status' => false,
-                'message' => 'Bunday foydalanuvchi mavjud emas.',
-            ], 400);
-        }
         if (!is_numeric($id) || intval($id) != $id) {
             return response()->json(['error' => 'Invalid ID'], 400);
         }
         $vacancies = Vacancy::where('id', $id)->with('demands.dir_demand','occupation','region')->first();
+        if ($vacancies->close_at<now()&&$vacancies->publication==null){
+            return response()->json(['error' => 'Bunday vakansiya xozirda mavjud emas'], 404);
+        }
         return response()->json($vacancies);
     }
 
