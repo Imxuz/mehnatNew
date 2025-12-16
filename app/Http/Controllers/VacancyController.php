@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Demand;
 use App\Models\Permission;
 use App\Models\PermissionRole;
+use App\Models\Region;
 use App\Models\Vacancy;
 use App\Http\Requests\StoreVacancyRequest;
 use App\Http\Requests\UpdateVacancyRequest;
@@ -17,10 +18,25 @@ class VacancyController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(){
-        $vacancies = Vacancy::with('demands.dir_demand','occupation','region')->orderBy('created_at','desc')->get();
-        return response()->json($vacancies);
+    public function index()
+    {
+        $admin = auth('apiAdmin')->user();
+
+        $query = Vacancy::with('demands.dir_demand', 'occupation', 'region')
+            ->orderBy('created_at', 'desc');
+
+        if ($admin->hasPermission('sub-region-vacancy')) {
+            $query->where('region_id', $admin->region_id);
+
+        } elseif ($admin->hasPermission('region-vacancy')) {
+            $query->whereHas('region', function ($q) use ($admin) {
+                $q->where('sub_region_id', $admin->region_id);
+            });
+        }
+
+        return response()->json($query->get());
     }
+
 
     /**
      * Store a newly created resource in storage.
