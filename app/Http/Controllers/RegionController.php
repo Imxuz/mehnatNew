@@ -13,10 +13,26 @@ class RegionController extends Controller
      */
     public function index()
     {
-        $regions = Region::select('id','name','title')->whereNull('sub_region_id')
-            ->with('children')
-            ->get();
-        return response()->json($regions);
+        $query = Region::select('id', 'name', 'title', 'sub_region_id')
+            ->whereNull('sub_region_id')
+            ->with('children');
+
+        if (auth('apiAdmin')->check()) {
+            $admin = auth('apiAdmin')->user();
+            if ($admin->hasPermission('region-vacancy')) {
+                $query->where('id', $admin->region_id);
+            }
+            if ($admin->hasPermission('sub-region-vacancy')) {
+                $query->where(function ($q) use ($admin) {
+                    $q->where('id', $admin->region_id)
+                        ->orWhereHas('children', function ($c) use ($admin) {
+                            $c->where('id', $admin->region_id);
+                        });
+                });
+            }
+        }
+
+        return response()->json($query->get());
     }
 
     /**
