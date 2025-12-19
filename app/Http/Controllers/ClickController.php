@@ -10,6 +10,7 @@ use App\Models\DirDemand;
 use App\Models\DocUser;
 use App\Models\Vacancy;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class ClickController extends Controller
 {
@@ -68,10 +69,19 @@ class ClickController extends Controller
                 'error' => $errors,
             ],422);
         }else {
-            Click::create([
+            $click_id = Click::create([
                 'user_id'=>$user->id,
                 'vacancy_id'=>$request->vacancy_id,
-            ]);
+            ])->id;
+            $url = '172.17.110.25:8081/api/vacancy/oclick-save/'.$click_id;
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_TIMEOUT_MS, 200);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_NOBODY, true);
+            curl_exec($ch);
+            curl_close($ch);
         }
 
 
@@ -112,5 +122,21 @@ class ClickController extends Controller
     public function destroy(Click $click)
     {
         //
+    }
+
+    public function adminUserClicks(Request $request)
+    {
+        $admin = auth('apiAdmin')->user();
+        $vacancy_id = $request->vacancy_id;
+        if ($vacancy_id){
+            $userClicks = Click:: where('vacancy_id', $vacancy_id)->with([
+                'user:id,name,pinfl,phone',
+                'user.docUser:id,user_id,path'
+            ])->get();
+
+        }
+        return response()->json($userClicks);
+
+
     }
 }

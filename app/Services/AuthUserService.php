@@ -1,9 +1,11 @@
 <?php
 namespace App\Services;
+use App\Jobs\SendVerificationSms;
 use App\Models\PhoneAttempt;
-use App\models\User;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class AuthUserService
@@ -12,34 +14,32 @@ class AuthUserService
     public function createUser(array $data): User
     {
         $user = User::where('phone', $data['phone'])->first();
-        if ($user) {
-            if ($user->is_verified) {
-                throw ValidationException::withMessages([
-                    'phone' => ['This phone number is already verified.'],
-                ]);
-            }
-            $verificationCode = mt_rand(100000, 999999);
-
-            $user->update([
-                'name' => $data['name'],
-                'password' => Hash::make($data['password']),
-                'verification_code' => $verificationCode,
-                'verification_code_expires_at' => Carbon::now()->addMinutes(10),
+        if ($user && $user->is_verified) {
+            throw ValidationException::withMessages([
+                'phone' => ['This phone number is already verified.'],
             ]);
-        } else {
-            $verificationCode = mt_rand(100000, 999999);
-
-            $data['password'] = Hash::make($data['password']);
-            $data['verification_code'] = $verificationCode;
-            $data['verification_code_expires_at'] = Carbon::now()->addMinutes(10);
-            $data['is_verified'] = false;
-
-            $user = User::create($data);
-
         }
-        $this->smsService->sendVerificationCode($user->phone, $user->verification_code);
+
+        $verificationData = [
+            'name' => $data['name'],
+            'password' => Hash::make($data['password']),
+            'verification_code' => mt_rand(100000, 999999),
+            'verification_code_expires_at' => now()->addMinutes(10),
+            'is_verified' => false,
+        ];
+        if ($user) {
+            $user->update($verificationData);
+        } else {
+            $verificationData['phone'] = $data['phone'];
+            $user = User::create($verificationData);
+        }
+        SendVerificationSms::dispatch($user->phone, $user->verification_code);
+//        $this->smsService->sendVerificationCode($user->phone, $user->verification_code);
+
+
         return $user;
     }
+
 
     public function sendVerificationCode(User $user): bool
     {

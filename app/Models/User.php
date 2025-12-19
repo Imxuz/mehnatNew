@@ -67,4 +67,8 @@ class User extends Authenticatable implements JWTSubject
     public function region(){
         return $this->hasOne(Region::class, 'id','region_id');
     }
+
+    public function docUser(){
+        return $this->hasMany(DocUser::class, 'user_id', 'id');
+    }
 }

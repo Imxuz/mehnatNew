@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
         $this->call(DirDemandSeeder::class);
         $this->call(RegionsTableSeeder::class);
         $this->call(FaqSeeder::class);
+        $this->call(AdderDemandsSeeder::class);
 
     }
 }

@@ -53,5 +53,10 @@ class Vacancy extends Model
             ->select('id', 'vacancy_id', 'user_id')
             ->where('user_id', $user->id);
     }
+    public function clicks(){
+        return $this->hasMany(Click::class,'vacancy_id','id');
+    }
+
+
 
 }

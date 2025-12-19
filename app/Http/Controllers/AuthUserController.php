@@ -8,6 +8,7 @@ use App\Services\AuthUserService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -22,7 +23,6 @@ class AuthUserController extends Controller
     public function create(StoreUserAuthRequest $request)
     {
         $user = $this->authUserService->createUser($request->validated());
-
         return response()->json([
             'message' => 'User created successfully',
             'user' => $user

@@ -37,7 +37,6 @@ Route::middleware('auth.jwt')->group(function () {
     Route::resource('click', ClickController::class);
     Route::get('docs/{filepath}', [UserController::class,'show'])->where('filepath', '.*');
     Route::resource('userVacancy', UserVacancyController::class);
-
     Route::post('click/vacancyInfo',[ UserVacancyController::class, 'userVacancy']);
 });
 
@@ -48,6 +47,7 @@ Route::prefix('admin')->middleware('auth.admin.jwt')->group(function () {
     Route::resource('data', AdminController::class);
     Route::post('delayWorker', [AdminController::class,'delayWorker']);
     Route::get('search/occupation', [OccupationController::class,'searchOccupation']);
+    Route::get('user/clicks', [ClickController::class,'adminUserClicks']);
     Route::post('publication', [VacancyController::class,'publication'])->middleware('admin.permission:vacancy-publication');
     Route::resource('vacancy', VacancyController::class);
     Route::get('docs/{filepath}', [UserController::class,'show'])->where('filepath', '.*');

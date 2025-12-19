@@ -18,11 +18,13 @@ class VacancyController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $admin = auth('apiAdmin')->user();
 
-        $query = Vacancy::with('demands.dir_demand', 'occupation', 'region')
+
+
+        $query = Vacancy::with('demands.dir_demand', 'occupation', 'region')->withCount('clicks')
             ->orderBy('created_at', 'desc');
 
         if ($admin->hasPermission('sub-region-vacancy')) {
@@ -33,8 +35,20 @@ class VacancyController extends Controller
                 $q->where('sub_region_id', $admin->region_id);
             });
         }
+        $search = $request->search;
+        if ($search){
+            if ($search === 'active') {
+                $query->where('close_at', '>=', now()) ->whereNotNull('publication');
+            } elseif ($search === 'archive') {
+                $query->where('close_at', '<=', now())->whereNotNull('publication');
+            } elseif ($search === 'published') {
+                $query->whereNotNull('publication'); }
+            elseif ($search === 'unpublished') {
+                $query->whereNull('publication');}
+        }
 
-        return response()->json($query->get());
+        $perPage = $request->get('per_page', 2);
+        return response()->json($query->paginate($perPage));
     }
 
 

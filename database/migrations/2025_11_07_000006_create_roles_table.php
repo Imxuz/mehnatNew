@@ -27,6 +27,8 @@ return new class extends Migration
             $table->foreignId('role_id')->constrained()->onDelete('cascade');
             $table->primary(['permission_id', 'role_id']);
         });
+
+
     }
 
     /**
