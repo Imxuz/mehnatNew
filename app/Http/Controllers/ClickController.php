@@ -73,7 +73,7 @@ class ClickController extends Controller
                 'user_id'=>$user->id,
                 'vacancy_id'=>$request->vacancy_id,
             ])->id;
-            $url = '172.17.110.25:8081/api/vacancy/oclick-save/'.$click_id;
+            $url = 'https://ai-hr.ngmk.uz/api/vacancy/oclick-save/'.$click_id;
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_TIMEOUT_MS, 200);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
@@ -129,9 +129,11 @@ class ClickController extends Controller
         $admin = auth('apiAdmin')->user();
         $vacancy_id = $request->vacancy_id;
         if ($vacancy_id){
-            $userClicks = Click:: where('vacancy_id', $vacancy_id)->with([
+            $userClicks = Click:: where('vacancy_id', $vacancy_id) ->with([
                 'user:id,name,pinfl,phone',
-                'user.docUser:id,user_id,path'
+                'user.docUser:id,user_id,path,dir_demand_id',
+                'user.docUser.demand:id,title'
+
             ])->get();
 
         }

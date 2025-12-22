@@ -10,24 +10,30 @@ class SmsService
     public static function sendVerificationCode(string $phone, int $code): bool
     {
         $phone = Str::of($phone)->remove(['+', '-', ' '])->prepend('+');
-        $message = App::isLocale('ru')
-            ? "НГМК Код верификации: $code"
-            : "NKMK tasdiqlash kodi: $code";
+
+
+        $message =  "НГМК Код верификации: $code";
         try {
-            $response = Http::withoutVerifying()
-            ->timeout(5)
-            ->connectTimeout(3)
-            ->get('https://12.16.0.15:113/cgi-bin/sendsms', [
-                'smsc'     => 'smsc18',
-                'username' => 'orisp',
-                'password' => 'oror1414*',
-                'from'     => '1234',
-                'to'       => $phone,
-                'text'     => $message,
-                'coding'   => '2',
-                'charset'=>'utf-8',
-                'dlr-mask' => '3',
-            ]);
+            $response = Http::withoutVerifying([
+                'verify' => false,
+                'curl' => [
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => false,
+                ],
+            ])
+                ->timeout(5)
+                ->connectTimeout(3)
+                ->get('https://172.16.0.195:13013/cgi-bin/sendsms', [
+                    'smsc'     => 'smsc18',
+                    'username' => 'orisp',
+                    'password' => 'oror1414*',
+                    'from'     => 'mehnatUz',
+                    'to'       => $phone,
+                    'text'     => $message,
+                    'coding'   => '2',
+                    'charset'=>'utf-8',
+                    'dlr-mask' => '3',
+                ]);
 
             if ($response->successful()) {
                 return true;

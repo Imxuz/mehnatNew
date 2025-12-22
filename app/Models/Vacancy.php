@@ -50,7 +50,7 @@ class Vacancy extends Model
             return $this->hasOne(Click::class)->whereRaw('1 = 0');
         }
         return $this->hasOne(Click::class, 'vacancy_id', 'id')
-            ->select('id', 'vacancy_id', 'user_id')
+            ->select('id', 'vacancy_id', 'user_id','sent')
             ->where('user_id', $user->id);
     }
     public function clicks(){

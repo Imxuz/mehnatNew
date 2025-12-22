@@ -65,7 +65,7 @@ class UserService
 
 
 
-                $url = '172.17.110.25:8081/api/mehnat/doc-user/'.$doc_id;
+                $url = 'https://ai-hr.ngmk.uz/api/mehnat/doc-user/'.$doc_id;
                 $ch = curl_init($url);
                 curl_setopt($ch, CURLOPT_TIMEOUT_MS, 200);
                 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
