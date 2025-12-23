@@ -9,8 +9,16 @@ use Illuminate\Support\Str;
 
 class UserService
 {
+    protected string $hrUrl;
+
+    public function __construct()
+    {
+        $this->hrUrl = env('HR_MEHNAT_API');
+    }
+
     public function storeUserFiles($user, $request)
     {
+
         $adder_demands_id = null;
         $path =null;
         $uniqid =$user->unique_id==null? Str::uuid():$user->unique_id;
@@ -65,7 +73,7 @@ class UserService
 
 
 
-                $url = 'https://ai-hr.ngmk.uz/api/mehnat/doc-user/'.$doc_id;
+                $url = $this->hrUrl.'/mehnat/doc-user/'.$doc_id;
                 $ch = curl_init($url);
                 curl_setopt($ch, CURLOPT_TIMEOUT_MS, 200);
                 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);

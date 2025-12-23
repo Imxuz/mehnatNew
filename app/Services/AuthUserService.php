@@ -33,8 +33,8 @@ class AuthUserService
             $verificationData['phone'] = $data['phone'];
             $user = User::create($verificationData);
         }
-        SendVerificationSms::dispatch($user->phone, $user->verification_code);
-//        $this->smsService->sendVerificationCode($user->phone, $user->verification_code);
+//        SendVerificationSms::dispatch($user->phone, $user->verification_code);
+        $this->smsService->sendVerificationCode($user->phone, $user->verification_code);
 
 
         return $user;
@@ -54,7 +54,11 @@ class AuthUserService
             throw new \Exception('Kod yuborishdan oldin 60 soniya kuting.');
         }
         $code = mt_rand(100000, 999999);
-        $user->update(['verification_code' => $code]);
+
+        $user->update([
+            'verification_code' => $code ,
+            'verification_code_expires_at' => now()->addMinutes(10),
+            ]);
         $this->smsService->sendVerificationCode($user->phone, $code);
         $attempt->update([
             'sms_sent_today' => $attempt->sms_sent_today + 1,

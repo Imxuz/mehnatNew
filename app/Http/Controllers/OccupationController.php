@@ -23,18 +23,24 @@ class OccupationController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreOccupationRequest $request)
     {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls',
+        Occupation::create([
+            'title' => json_encode([
+                'ru' => $request->title_ru,
+                'uz' => $request->title_uz,
+            ]) ,
+            'demand' => json_encode([
+                'ru' => $request->demand_ru,
+                'uz' => $request->demand_uz,
+            ]) ,
+
         ]);
-
-
-        Excel::import(new OccupationsImport, $request->file('file'));
-
-        return response()->json([
-            'message' => 'Occupationlar muvaffaqiyatli import qilindi'
-        ]);
+//        Excel::import(new OccupationsImport, $request->file('file'));
+//
+//        return response()->json([
+//            'message' => 'Occupationlar muvaffaqiyatli import qilindi'
+//        ]);
     }
 
     /**
@@ -48,9 +54,19 @@ class OccupationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateOccupationRequest $request, Occupation $occupation)
+    public function update(UpdateOccupationRequest $request)
     {
-        //
+        $occupation = Occupation::find($request->occupation_id);
+        $occupation::update([
+            'title' => json_encode([
+                'ru' => $request->title_ru,
+                'uz' => $request->title_uz,
+            ]) ,
+            'demand' => json_encode([
+                'ru' => $request->demand_ru,
+                'uz' => $request->demand_uz,
+            ]) ,
+        ]);
     }
 
     /**
@@ -67,6 +83,6 @@ class OccupationController extends Controller
         if ($request->searchOccupation) {
             $query->where('occupation', 'like', '%' . $request->searchOccupation . '%');
         }
-        return response()->json($query->get());
+        return response()->json($query->with('spcOccupation')->get());
     }
 }

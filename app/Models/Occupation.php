@@ -10,4 +10,8 @@ class Occupation extends Model
         'occupation', 'demand'
     ];
 
+    public function spcOccupation(){
+        return $this->hasMany(SpecialOccupation::class,'occupation_id', 'id');
+    }
+
 }

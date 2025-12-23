@@ -6,7 +6,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class StoreOccupationRequest extends FormRequest
+class StoreSpecialOccupationRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,10 +24,11 @@ class StoreOccupationRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'occupation_id' => 'required|integer|exists:occupations,id',
             'title_uz' => 'required|string',
             'title_ru' => 'required|string',
-            'demand_uz' => 'required|string',
-            'demand_ru' => 'required|string',
+            'description' => 'nullable|string',
+            'is_active' => 'required|boolean',
         ];
     }
 

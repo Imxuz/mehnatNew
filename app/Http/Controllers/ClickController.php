@@ -14,6 +14,12 @@ use Illuminate\Http\Request;
 
 class ClickController extends Controller
 {
+    protected string $hrUrl;
+
+    public function __construct()
+    {
+        $this->hrUrl = env('HR_MEHNAT_API');
+    }
     /**
      * Display a listing of the resource.
      */
@@ -73,7 +79,7 @@ class ClickController extends Controller
                 'user_id'=>$user->id,
                 'vacancy_id'=>$request->vacancy_id,
             ])->id;
-            $url = 'https://ai-hr.ngmk.uz/api/vacancy/oclick-save/'.$click_id;
+            $url = $this->hrUrl.'/vacancy/oclick-save/'.$click_id;
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_TIMEOUT_MS, 200);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);

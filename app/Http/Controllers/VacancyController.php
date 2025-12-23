@@ -197,6 +197,8 @@ class VacancyController extends Controller
             return response()->json(['error' => 'Ushbu vakansiya publicatsiya qilingan'], 400);
         }
         $vacancy->publication = $admin->id;
+        $vacancy->open_at = now();
+        $vacancy->close_at = now()->addDay(10);
         $vacancy->save();
 
         return response()->json($vacancy);
