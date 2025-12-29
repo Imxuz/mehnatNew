@@ -64,8 +64,9 @@ class VacancyController extends Controller
                 'region_id'      => $request->region_id,
                 'admin_id'       => $admin->id,
                 'occupation_id'  => $request->occupation_id,
-                'open_at'        => $request->open_at,
-                'close_at'       => $request->close_at,
+//                'open_at'        => $request->open_at,
+//                'close_at'       => $request->close_at,
+                'specials'      =>  $request->specials,
             ]);
 
             $demands = $request->input('demands', []);
@@ -128,8 +129,9 @@ class VacancyController extends Controller
                 'region_id'      => $request->region_id,
                 'admin_id'       => $admin->id,
                 'occupation_id'  => $request->occupation_id,
-                'open_at'        => $request->open_at,
-                'close_at'       => $request->close_at,
+                'specials'      =>  $request->specials,
+//                'open_at'        => $request->open_at,
+//                'close_at'       => $request->close_at,
             ]);
             Demand::where('vacancy_id', $vacancy->id)->delete();
             $newDemands = [];

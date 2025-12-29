@@ -30,6 +30,11 @@ class User extends Authenticatable implements JWTSubject
         'password',
         'is_verified',
         'verification_code_expires_at',
+        'passport_series',
+        'passport_number',
+        'birthday',
+        'name',
+        'address',
     ];
 
     /**
@@ -70,5 +75,9 @@ class User extends Authenticatable implements JWTSubject
 
     public function docUser(){
         return $this->hasMany(DocUser::class, 'user_id', 'id');
+    }
+
+    public function docUserHistory(){
+        return $this->hasMany(DocUserHistory::class, 'user_id', 'id');
     }
 }

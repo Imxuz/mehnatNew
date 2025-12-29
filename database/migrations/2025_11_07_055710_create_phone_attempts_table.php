@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->unique()->constrained()->cascadeOnDelete();
             $table->unsignedTinyInteger('sms_sent_today')->default(0);
+            $table->string('ip_address');
             $table->timestamp('last_sms_sent_at')->nullable();
             $table->timestamps();
         });

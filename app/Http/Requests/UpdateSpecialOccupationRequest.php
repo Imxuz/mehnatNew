@@ -24,12 +24,12 @@ class UpdateSpecialOccupationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'special_id'=>'required|integer',
+            'id'=>'required|integer',
             'occupation_id' => 'required|integer|exists:occupations,id',
             'title_uz' => 'required|string',
             'title_ru' => 'required|string',
             'description' => 'nullable|string',
-            'is_active' => 'required|boolean',
+            'is_active' => 'boolean',
         ];
     }
 

@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateClickRequest;
 use App\Models\Demand;
 use App\Models\DirDemand;
 use App\Models\DocUser;
+use App\Models\DocUserHistory;
 use App\Models\Vacancy;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -40,8 +41,8 @@ class ClickController extends Controller
      */
     public function store(StoreClickRequest $request)
     {
-        $user = auth('api')->user();
-        if (!$user->id){
+        $user = auth('api')->id();
+        if (!$user){
             return response()->json([
                 'status' => false,
                 'message' => 'Bunday foydalanuvchi mavjud emas.',
@@ -57,7 +58,7 @@ class ClickController extends Controller
                 'message' => 'Bu vakansiya hozir faol emas yoki muddati tugagan.',
             ], 400);
         }
-        $ClickCheck = Click::where('user_id', $user->id)->where('vacancy_id',$request->vacancy_id)->first();
+        $ClickCheck = Click::where('user_id', $user)->where('vacancy_id',$vacancy->id)->first();
         if ($ClickCheck) {
             return response()->json([
                 'status' => false,
@@ -65,20 +66,44 @@ class ClickController extends Controller
             ], 400);
         }
 
-        $demands = Demand::where('vacancy_id',$request->vacancy_id)->pluck('dir_demand_id');
-        $docUser = DocUser::where('user_id',$user->id)->pluck('dir_demand_id');
+        $demands = Demand::where('vacancy_id',$vacancy->id)->pluck('dir_demand_id');
+        $docUser = DocUser::where('user_id',$user)->where('check', 1)->pluck('dir_demand_id');
         $missingDemands = $demands->diff($docUser);
         if ($missingDemands->isNotEmpty()) {
             $errors = DirDemand::whereIn('id', $missingDemands)
                 ->pluck('title');
             return response()->json([
-                'error' => $errors,
+                'status' => false,
+                'message' => 'Quyidagi hujjatlar tasdiqlanmagan yoki mavjud emas',
+                'errors' => $errors,
             ],422);
         }else {
             $click_id = Click::create([
-                'user_id'=>$user->id,
+                'user_id'=>$user,
                 'vacancy_id'=>$request->vacancy_id,
             ])->id;
+
+            DocUser::where('user_id', $user)
+                ->where('check', 1)
+                ->whereIn('dir_demand_id', $demands)
+                ->update([
+                    'vacancy_doc_id' => $vacancy->id,
+                ]);
+
+            $docUsers = DocUser::where('user_id', $user)->where('check', 1)->whereIn('dir_demand_id', $demands)->get();
+            foreach ($docUsers as $docUser) {
+                DocUserHistory::create([
+                    'click_id'    => $click_id,
+                    'user_id' => $docUser->user_id,
+                    'dir_demand_id' => $docUser->dir_demand_id,
+                    'path' => $docUser->path,
+                    'adder_demands_id' => $docUser->adder_demands_id,
+                    'doc_info' => $docUser->doc_info,
+                    'description' => $docUser->description,
+                    'ip_address'=>$docUser->ip_address,
+                ]);
+            }
+
             $url = $this->hrUrl.'/vacancy/oclick-save/'.$click_id;
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_TIMEOUT_MS, 200);
@@ -141,9 +166,16 @@ class ClickController extends Controller
                 'user.docUser.demand:id,title'
 
             ])->get();
+            $userClickGet = Click::where('vacancy_id', $vacancy_id)
+                ->with([
+                    'user:id,name,pinfl,phone',
+                    'doc_histories:id,click_id,user_id,path,dir_demand_id',
+                    'doc_histories.demand:id,title',
+                ])
+                ->get();
 
         }
-        return response()->json($userClicks);
+        return response()->json($userClickGet);
 
 
     }

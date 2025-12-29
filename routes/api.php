@@ -11,12 +11,14 @@ use App\Http\Controllers\RegionController;
 use App\Http\Controllers\DirDemandController;
 use App\Http\Controllers\OccupationController;
 use \App\Http\Controllers\FaqsController;
+use \App\Http\Controllers\SpecialOccupationController;
 
 
 
 Route::resource('region', RegionController::class);
 Route::resource('dir_demands', DirDemandController::class);
 Route::resource('occupation', OccupationController::class);
+Route::resource('specials', SpecialOccupationController::class);
 Route::get('/auth/user', [AuthUserController::class, 'userAdmin']);
 
 Route::post('user/create', [AuthUserController::class, 'create']);
@@ -38,6 +40,7 @@ Route::middleware('auth.jwt')->group(function () {
     Route::get('docs/{filepath}', [UserController::class,'show'])->where('filepath', '.*');
     Route::resource('userVacancy', UserVacancyController::class);
     Route::post('click/vacancyInfo',[ UserVacancyController::class, 'userVacancy']);
+    Route::post('/get-passport-data',[ UserController::class, 'getPassportData']);
 });
 
 

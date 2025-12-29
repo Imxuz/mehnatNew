@@ -18,5 +18,8 @@ class Click extends Model
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
+    public function doc_histories(){
+        return $this->hasMany(DocUserHistory::class, 'click_id', 'id');
+    }
 
 }

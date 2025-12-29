@@ -26,8 +26,8 @@ class StoreOccupationRequest extends FormRequest
         return [
             'title_uz' => 'required|string',
             'title_ru' => 'required|string',
-            'demand_uz' => 'required|string',
-            'demand_ru' => 'required|string',
+            'demand_uz' => '|string',
+            'demand_ru' => 'string',
         ];
     }
 

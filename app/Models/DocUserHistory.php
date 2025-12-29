@@ -4,22 +4,22 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class DocUser extends Model
+class DocUserHistory extends Model
 {
-    protected $fillable = [
+    protected $table = "doc_user_history";
+    protected $fillable=[
+        'click_id',
         'user_id',
         'dir_demand_id',
         'path',
         'adder_demands_id',
-        'check',
-        'vacancy_doc_id',
+        'doc_info',
+        'description',
         'ip_address',
-
     ];
 
     public function demand()
     {
         return $this->belongsTo(DirDemand::class, 'dir_demand_id');
     }
-
 }

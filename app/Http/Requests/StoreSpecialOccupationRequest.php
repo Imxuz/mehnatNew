@@ -28,7 +28,7 @@ class StoreSpecialOccupationRequest extends FormRequest
             'title_uz' => 'required|string',
             'title_ru' => 'required|string',
             'description' => 'nullable|string',
-            'is_active' => 'required|boolean',
+            'is_active' => 'boolean',
         ];
     }
 

@@ -14,8 +14,12 @@ class Vacancy extends Model
          "close_at"     ,
          "admin_id"     ,
          "publication"  ,
+        "specials",
     ];
 
+    protected $casts = [
+        'specials' => 'array',
+    ];
 
 
     public function demands()

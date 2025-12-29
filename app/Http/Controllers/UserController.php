@@ -11,6 +11,7 @@ use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
@@ -104,6 +105,77 @@ class UserController extends Controller
     {
         //
     }
+
+
+    public function getPassportData(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'passport_number' => 'required|string|max:7',
+            'passport_series' => 'required|string|max:2',
+            'birthday' => 'required|date'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+        $passport_number = $request->input('passport_number');
+        $passport_series = strtoupper($request->input('passport_series'));
+        $birthday = $request->input('birthday');
+        $user = auth('api')->user();
+// Paroldagi * belgisini %2A ga almashtirdik
+        $response = Http::timeout(20)
+            ->withOptions([
+                'proxy' => env('PROXY_URL'),
+                'curl'  => [
+                    // NTLM va boshqa turdagi autentifikatsiyalarni avtomatik aniqlash
+                    CURLOPT_PROXYUSERPWD => env('PROXY_USER') . ":" . env('PROXY_PASS'),
+                    CURLOPT_PROXYAUTH    => CURLAUTH_ANY,
+                ],
+                'verify' => false,
+            ])
+            ->post('https://api-test.gross.uz/api/v1/gross-provider/get-data', [
+                'is_ersp' => false,
+                'method' => 'pass-data-birthday',
+                'payload' => [
+                    'pass_number' => $passport_number,
+                    'pass_sery'   => $passport_series,
+                    'birthday'    => $birthday,
+                ],
+            ]);
+
+        if ($response->successful()) {
+            $responseBody = $response->json();
+            $userData = $responseBody['data'] ?? [];
+            $user->update([
+                'passport_series' => $passport_series,
+                'passport_number' => $passport_number,
+                'birthday'        => $birthday,
+                'pinfl'           => data_get($userData, 'driver.pinfl'),
+                'address'         => data_get($userData, 'address'),
+                'name'            => trim(
+                    data_get($userData, 'last_name').' '.
+                    data_get($userData, 'first_name').' '.
+                    data_get($userData, 'middle_name')
+                ),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data'    => $response->json(),
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'status'  => $response->status(),
+            'message' => $response->json() ?: 'API error',
+        ], $response->status() ?: 422);
+    }
+
+
 
 
 

@@ -1,8 +1,10 @@
 <?php
 namespace App\Services;
+use App\Models\Click;
 use App\Models\Demand;
 use App\Models\DirDemand;
 use App\Models\DocUser;
+use App\Models\DocUserHistory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -18,20 +20,17 @@ class UserService
 
     public function storeUserFiles($user, $request)
     {
-
-        $adder_demands_id = null;
-        $path =null;
-        $uniqid =$user->unique_id==null? Str::uuid():$user->unique_id;
         $count=0;
         if (!$request->id) {
             $count = DocUser::where('user_id', $user->id)
                 ->where('dir_demand_id', $request->dir_demand_id)
                 ->count();
         }else{
-        $pathRemover = DocUser::select('path')->where('id', $request->id)
-            ->where('user_id', $user->id)->first();
-        if ($pathRemover&&$pathRemover->path){
+        $pathRemover = DocUser::where('id', $request->id)
+            ->where('user_id', $user->id)->firstOrFail();
+        if ($pathRemover&&$pathRemover->path&&!$pathRemover->vacancy_doc_id){
             Storage::disk('private')->delete($pathRemover->path);
+
         }
     }
         if ($count>5){
@@ -40,6 +39,14 @@ class UserService
             ],403);
         }
 
+        if (isset($pathRemover)){
+            $pathRemover->update([
+                'vacancy_doc_id' => null,
+                'path' => null,
+            ]);
+        }
+
+
             if ($request->hasFile('file') && $request->file('file')->isValid()) {
                 $file = $request->file('file');
                 $content = file_get_contents($file->getRealPath());
@@ -47,16 +54,13 @@ class UserService
                     throw new \Exception("File $file contains unsafe content.");
                 }
 
-                $filename = $uniqid .'_'.$count.'.' . $file->getClientOriginalExtension();
+                $filename = Str::uuid().'.' . $file->getClientOriginalExtension();
                 $path = $file->storeAs(
                     'uploads/user_' . $user->id . '/'.'dir_demand_'.$request->dir_demand_id,
                     $filename,
                     'private'
                 );
 
-                if ($request->adder_demands_id){
-                    $adder_demands_id = $request->adder_demands_id;
-                }
 
                 $doc_id = DocUser::updateOrCreate(
                     [
@@ -68,6 +72,7 @@ class UserService
                         'path' => $path,
                         'check'=>null,
                         'adder_demands_id'=>null,
+                        'ip_address'=>request()->ip(),
                     ]
                 )->id;
 
@@ -90,19 +95,16 @@ class UserService
                     ],
                     [
                         'user_id' => $user->id,
+
                         'dir_demand_id' => $request->dir_demand_id,
                         'adder_demands_id'=>$request->adder_demands_id,
                         'path'=>null,
+                        'ip_address'=>request()->ip(),
                     ]
                 );
                 }
-
-
             }
 
-
-
-        $user['unique_id'] = $uniqid;
         $user->save();
 
         return $user;

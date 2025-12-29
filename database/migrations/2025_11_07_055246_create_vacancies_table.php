@@ -16,7 +16,8 @@ return new class extends Migration
             $table->unsignedInteger('region_id');
             $table->foreignId('admin_id')->constrained();
             $table->foreignId('occupation_id')->constrained();
-            $table->integer('publication')->default(null);
+            $table->string('specials')->nullable();
+            $table->integer('publication')->nullable();
             $table->timestamp('open_at')->nullable();
             $table->timestamp('close_at')->nullable();
 
