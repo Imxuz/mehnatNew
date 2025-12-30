@@ -14,18 +14,18 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->integer('region_id')->nullable();
-            $table->string("name",100);
+            $table->string("name")->nullable();
             $table->string("passport_series",2)->nullable();
             $table->string("passport_number",7)->nullable();
             $table->string("birthday",20)->nullable();
-            $table->bool("pass_verify")->default(false);
+            $table->boolean("pass_verify")->default(false);
             $table->string("pinfl",14)->nullable();
             $table->string("address",255)->nullable();
             $table->string("phone", 12)->unique();
             $table->string("unique_id", 50)->nullable();
             $table->string('email', 100)->unique()->nullable();
             $table->string('verification_code', 6)->nullable();
-            $table->boolean('personal_data_change');
+            $table->boolean('agreement');
             $table->string('password');
             $table->boolean('is_verified')->default(false);
             $table->timestamp('verification_code_expires_at')->nullable();

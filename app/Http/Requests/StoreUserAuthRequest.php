@@ -25,7 +25,7 @@ class StoreUserAuthRequest extends FormRequest
     public function rules(): array
     {
         return [
-            "name" => "required|string|min:3|max:150",
+            "agreement" => "required",
             'phone' => [
                 'required',
                 "regex:/^998[0-9]{9}$/",

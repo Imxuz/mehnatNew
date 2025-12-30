@@ -21,7 +21,7 @@ class AuthUserService
         }
 
         $verificationData = [
-            'name' => $data['name'],
+            'agreement' => $data['agreement'],
             'password' => Hash::make($data['password']),
             'verification_code' => mt_rand(100000, 999999),
             'verification_code_expires_at' => now()->addMinutes(10),

@@ -125,25 +125,22 @@ class UserController extends Controller
         $passport_series = strtoupper($request->input('passport_series'));
         $birthday = $request->input('birthday');
         $user = auth('api')->user();
-// Paroldagi * belgisini %2A ga almashtirdik
         $response = Http::timeout(20)
+            ->withHeaders([
+                'Authorization' => 'Basic TkVXU0lURTo5L05QQkxCXys1KyY='
+            ])
             ->withOptions([
                 'proxy' => env('PROXY_URL'),
                 'curl'  => [
-                    // NTLM va boshqa turdagi autentifikatsiyalarni avtomatik aniqlash
                     CURLOPT_PROXYUSERPWD => env('PROXY_USER') . ":" . env('PROXY_PASS'),
                     CURLOPT_PROXYAUTH    => CURLAUTH_ANY,
                 ],
                 'verify' => false,
             ])
-            ->post('https://api-test.gross.uz/api/v1/gross-provider/get-data', [
-                'is_ersp' => false,
-                'method' => 'pass-data-birthday',
-                'payload' => [
-                    'pass_number' => $passport_number,
-                    'pass_sery'   => $passport_series,
-                    'birthday'    => $birthday,
-                ],
+            ->post('https://api-proref.insonline.uz/api/v1/provider/person/pass-dob', [
+                'birthDate' => $birthday,
+                'passportNumber' => $passport_number,
+                'passportSeries' => $passport_series,
             ]);
 
         if ($response->successful()) {
@@ -153,12 +150,12 @@ class UserController extends Controller
                 'passport_series' => $passport_series,
                 'passport_number' => $passport_number,
                 'birthday'        => $birthday,
-                'pinfl'           => data_get($userData, 'driver.pinfl'),
+                'pinfl'           => data_get($userData, 'pinfl'),
                 'address'         => data_get($userData, 'address'),
                 'name'            => trim(
-                    data_get($userData, 'last_name').' '.
-                    data_get($userData, 'first_name').' '.
-                    data_get($userData, 'middle_name')
+                    data_get($userData, 'lastNameLatin').' '.
+                    data_get($userData, 'firstNameLatin').' '.
+                    data_get($userData, 'middleNameLatin')
                 ),
             ]);
 
