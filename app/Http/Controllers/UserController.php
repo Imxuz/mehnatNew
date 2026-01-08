@@ -125,7 +125,37 @@ class UserController extends Controller
         $passport_series = strtoupper($request->input('passport_series'));
         $birthday = $request->input('birthday');
         $user = auth('api')->user();
-        $response = Http::timeout(20)
+
+
+        if ($request->manually &&$request->manually==true){
+            $user->update([
+                'passport_series' => $passport_series,
+                'passport_number' => $passport_number,
+                'birthday'        => $birthday,
+                'pinfl'           => $request->input('pinfl'),
+                'address'         => $request->input('address'),
+                'name'            => trim(
+                    $request->input('lastNameLatin').' '.
+                    $request->input('firstNameLatin').' '.
+                    $request->input('middleNameLatin')
+                ),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $user->fresh()->only([
+                    'name',
+                    'passport_series',
+                    'passport_number',
+                    'birthday',
+                    'pinfl',
+                    'address',
+                    'phone',
+                ]),
+            ]);
+        };
+
+        $response = Http::timeout(10)
             ->withHeaders([
                 'Authorization' => 'Basic TkVXU0lURTo5L05QQkxCXys1KyY='
             ])
@@ -137,6 +167,7 @@ class UserController extends Controller
                 ],
                 'verify' => false,
             ])
+//            pass-dob
             ->post('https://api-proref.insonline.uz/api/v1/provider/person/pass-dob', [
                 'birthDate' => $birthday,
                 'passportNumber' => $passport_number,
@@ -161,7 +192,15 @@ class UserController extends Controller
 
             return response()->json([
                 'success' => true,
-                'data'    => $response->json(),
+                'data' => $user->fresh()->only([
+                    'name',
+                    'passport_series',
+                    'passport_number',
+                    'birthday',
+                    'pinfl',
+                    'address',
+                    'phone',
+                ]),
             ]);
         }
 

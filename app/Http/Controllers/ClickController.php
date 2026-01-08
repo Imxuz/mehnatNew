@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\UsersInfoExport;
 use App\Models\Click;
 use App\Http\Requests\StoreClickRequest;
 use App\Http\Requests\UpdateClickRequest;
@@ -12,6 +13,7 @@ use App\Models\DocUserHistory;
 use App\Models\Vacancy;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ClickController extends Controller
 {
@@ -160,12 +162,6 @@ class ClickController extends Controller
         $admin = auth('apiAdmin')->user();
         $vacancy_id = $request->vacancy_id;
         if ($vacancy_id){
-            $userClicks = Click:: where('vacancy_id', $vacancy_id) ->with([
-                'user:id,name,pinfl,phone',
-                'user.docUser:id,user_id,path,dir_demand_id',
-                'user.docUser.demand:id,title'
-
-            ])->get();
             $userClickGet = Click::where('vacancy_id', $vacancy_id)
                 ->with([
                     'user:id,name,pinfl,phone',
@@ -178,5 +174,26 @@ class ClickController extends Controller
         return response()->json($userClickGet);
 
 
+    }
+
+    public function exportUsers(Request $request)
+    {
+        // 1-QADAM: Request kelyaptimi?
+        if (!$request->has('vacancy_id')) {
+            return response()->json(['error' => 'Vacancy ID berilmadi'], 400);
+        }
+        try {
+            $export = new \App\Exports\UsersInfoExport($request->vacancy_id);
+            return \Maatwebsite\Excel\Facades\Excel::download(
+                $export,
+                'users.xlsx'
+            );
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Xatolik yuz berdi',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
     }
 }

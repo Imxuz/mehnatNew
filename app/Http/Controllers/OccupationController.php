@@ -26,7 +26,7 @@ class OccupationController extends Controller
     public function store(StoreOccupationRequest $request)
     {
         $admin = auth('apiAdmin')->user();
-        if ($admin) return response()->json('Xatolik', 401);
+        if (!$admin) return response()->json('Xatolik', 401);
 
         Occupation::create([
             'occupation' => json_encode([
@@ -60,7 +60,7 @@ class OccupationController extends Controller
     public function update(UpdateOccupationRequest $request)
     {
         $admin = auth('apiAdmin')->user();
-        if ($admin) return response()->json('Xatolik', 401);
+        if (!$admin) return response()->json('Xatolik', 401);
         $occupation = Occupation::find($request->id);
         $occupation->update([
             'occupation' => json_encode([

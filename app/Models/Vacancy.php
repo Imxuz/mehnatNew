@@ -20,6 +20,9 @@ class Vacancy extends Model
     protected $casts = [
         'specials' => 'array',
     ];
+    protected $appends = [
+        'special_data'
+    ];
 
 
     public function demands()
@@ -59,6 +62,15 @@ class Vacancy extends Model
     }
     public function clicks(){
         return $this->hasMany(Click::class,'vacancy_id','id');
+    }
+
+    public function getSpecialDataAttribute()
+    {
+        $value = $this->specials;
+        if (is_array($value)) {
+            return SpecialOccupation::select('title')->whereIn('id', $value)->get();
+        }
+        return SpecialOccupation::select('title')->where('id', $value)->first();
     }
 
 

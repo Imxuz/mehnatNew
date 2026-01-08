@@ -13,8 +13,8 @@ class DirDemandSeeder extends Seeder
             [
                 'id' => 1,
                 'title' => json_encode([
-                    'ru' => 'Оценка образования кандидата',
-                    'uz' => "Nomzodning ta'limini baholash",
+                    'ru' => 'Образования кандидата',
+                    'uz' => "Nomzodning ta'limi",
                 ], JSON_UNESCAPED_UNICODE),
                 'name' => 'education',
                 'sort_number' => 8,
@@ -26,8 +26,8 @@ class DirDemandSeeder extends Seeder
             [
                 'id' => 2,
                 'title' => json_encode([
-                    'ru' => 'Оценка дополнительных сертификатов',
-                    'uz' => "Qo'shimcha sertifikatlarni baholash",
+                    'ru' => 'Дополнительных сертификатов',
+                    'uz' => "Qo'shimcha sertifikatlar",
                 ], JSON_UNESCAPED_UNICODE),
                 'name' => 'certificate',
                 'sort_number' => 2,
@@ -39,10 +39,10 @@ class DirDemandSeeder extends Seeder
             [
                 'id' => 3,
                 'title' => json_encode([
-                    'ru' => 'Оценка опыта работы кандидата',
-                    'uz' => 'Nomzodning ish tajribasini baholash',
+                    'ru' => 'Опыта работы кандидата',
+                    'uz' => 'Nomzodning ish tajribasi',
                 ], JSON_UNESCAPED_UNICODE),
-                'name' => 'workbook',
+                'name' => 'experience',
                 'sort_number' => 3,
                 'type' => 'file',
                 'formType' => 'select',
@@ -52,8 +52,8 @@ class DirDemandSeeder extends Seeder
             [
                 'id' => 4,
                 'title' => json_encode([
-                    'ru' => 'Оценка водительского удостоверения',
-                    'uz' => 'Haydovchilik guvohnomasini baholash',
+                    'ru' => 'Водительского удостоверения',
+                    'uz' => 'Haydovchilik guvohnomasi',
                 ], JSON_UNESCAPED_UNICODE),
                 'name' => 'driverLicence',
                 'sort_number' => 4,
@@ -77,8 +77,8 @@ class DirDemandSeeder extends Seeder
             [
                 'id' => 6,
                 'title' => json_encode([
-                    'ru' => 'Оценка военной службы',
-                    'uz' => 'Harbiy xizmatni baholash',
+                    'ru' => 'Удостоверение военной службы',
+                    'uz' => 'Harbiy xizmat guvohnomasi',
                 ], JSON_UNESCAPED_UNICODE),
                 'name' => 'militaryCertificate',
                 'sort_number' => 6,
@@ -131,7 +131,7 @@ class DirDemandSeeder extends Seeder
                     'ru' => 'Трудовая книжка',
                     'uz' => 'Mehnat daftarchasi',
                 ], JSON_UNESCAPED_UNICODE),
-                'name' => 'tractor',
+                'name' => 'workbook',
                 'sort_number' => 10,
                 'type' => 'file',
                 'formType' => 'select',

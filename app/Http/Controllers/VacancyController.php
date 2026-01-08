@@ -75,7 +75,7 @@ class VacancyController extends Controller
                 if (!empty($demand['dir_demand_id']) || !empty($demand['score']) || !empty($demand['adder_text'])) {
                     Demand::create([
                         'dir_demand_id' => $demand['dir_demand_id'] ?? null,
-                        'adder_text'    => json_encode($demand['adder_text'], JSON_UNESCAPED_UNICODE) ?? null,
+                        'adder_text'    => $demand['adder_text'] ?? null,
                         'vacancy_id'    => $vacancy->id,
                         'score'         => $demand['score'] ?? null,
                     ]);
