@@ -12,6 +12,7 @@ class PhoneAttempt extends Model
         'user_id',
         'sms_sent_today',
         'last_sms_sent_at',
+        'ip_address',
     ];
 
     protected $casts = [

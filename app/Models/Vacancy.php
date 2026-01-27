@@ -14,6 +14,7 @@ class Vacancy extends Model
          "close_at"     ,
          "admin_id"     ,
          "publication"  ,
+         "description"  ,
         "specials",
     ];
 

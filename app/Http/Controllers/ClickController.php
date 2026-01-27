@@ -6,6 +6,7 @@ use App\Exports\UsersInfoExport;
 use App\Models\Click;
 use App\Http\Requests\StoreClickRequest;
 use App\Http\Requests\UpdateClickRequest;
+use App\Models\ClickLog;
 use App\Models\Demand;
 use App\Models\DirDemand;
 use App\Models\DocUser;
@@ -13,6 +14,7 @@ use App\Models\DocUserHistory;
 use App\Models\Vacancy;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ClickController extends Controller
@@ -195,5 +197,40 @@ class ClickController extends Controller
                 'trace' => $e->getTraceAsString()
             ], 500);
         }
+    }
+
+    public function responseClick(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|exists:clicks,id',
+            'comment' => 'required|string',
+            'sent' => 'required',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+        $admin = auth('apiAdmin')->id();
+        $click = Click::findOrFail($request->id);
+        $oldValues = $click;
+
+        $click->update([
+            'comment' => $request->comment,
+            'sent' => $request->sent,
+            'admin_id' => $admin
+        ]);
+        $newValues = $click;
+        ClickLog::create([
+            'admin_id'  => $admin,
+            'model'     => Click::class,
+            'action'    => 'response_click',
+            'old_values'=> json_encode($oldValues, JSON_UNESCAPED_UNICODE),
+            'new_values'=> json_encode($newValues, JSON_UNESCAPED_UNICODE),
+        ]);
+
+        return response()->json(['status' => 'success', 'message' => 'Qabul qilindi']);
+
     }
 }

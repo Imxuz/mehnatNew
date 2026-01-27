@@ -11,6 +11,8 @@ class Click extends Model
         'vacancy_id',
         'admin_id',
         'sent_id',
+        'comment',
+        'sent',
     ];
 
 

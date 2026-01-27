@@ -53,6 +53,7 @@ class UserController extends Controller
         if (!$user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
+
         $result = $this->userService->storeUserFiles($user, $request);
         return response()->json([
             'message' => 'User files uploaded successfully',

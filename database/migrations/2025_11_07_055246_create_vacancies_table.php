@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('admin_id')->constrained();
             $table->foreignId('occupation_id')->constrained();
             $table->string('specials')->nullable();
+            $table->text('description')->nullable();
             $table->integer('publication')->nullable();
             $table->timestamp('open_at')->nullable();
             $table->timestamp('close_at')->nullable();

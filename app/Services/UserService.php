@@ -6,6 +6,7 @@ use App\Models\DirDemand;
 use App\Models\DocUser;
 use App\Models\DocUserHistory;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -20,6 +21,7 @@ class UserService
 
     public function storeUserFiles($user, $request)
     {
+
         $count=0;
         if (!$request->id) {
             $count = DocUser::where('user_id', $user->id)
@@ -33,6 +35,7 @@ class UserService
 
         }
     }
+
         if ($count>5){
             return response()->json([
                 'errors'=>"Sizning bitta maydonda yuklagan documentlariz soni 5 tadan yuqori"
@@ -47,19 +50,52 @@ class UserService
         }
 
 
+
             if ($request->hasFile('file') && $request->file('file')->isValid()) {
                 $file = $request->file('file');
-                $content = file_get_contents($file->getRealPath());
-                if (preg_match('/<script\b[^>]*>(.*?)<\/script>/is', $content)) {
-                    throw new \Exception("File $file contains unsafe content.");
-                }
 
-                $filename = Str::uuid().'.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs(
-                    'uploads/user_' . $user->id . '/'.'dir_demand_'.$request->dir_demand_id,
-                    $filename,
-                    'private'
-                );
+                //Apiga so'rov yuborish boshlandi
+
+                $response = Http::withOptions([
+                    'verify' => false])->attach(
+                    'file',
+                    fopen($file->getRealPath(), 'r'),
+                    $file->getClientOriginalName(),
+                    ['Content-Type' => $file->getMimeType()]
+                )->post($this->hrUrl.'/mehnat/docUser-file', [
+                    'file_type' => $file->getClientOriginalExtension(),
+                ]);
+
+                if (! $response->successful()) {
+                    throw new \Exception($response);
+                }
+                $contentType = $response->header('Content-Type');
+
+                $extension = match ($contentType) {
+                    'application/pdf' => 'pdf',
+                    'image/png'       => 'png',
+                    'image/jpeg'      => 'jpg',
+                    default           => throw new \Exception('Unsupported response file type'),
+                };
+
+                $correctedFileContent = $response->body();
+                $filename = Str::uuid() . '.' . $extension;
+                $path = 'uploads/user_' . $user->id . '/dir_demand_' . $request->dir_demand_id . '/' . $filename;
+                Storage::disk('private')->put($path, $correctedFileContent);
+
+                //Apiga so'rov yuborish tugadi
+
+//                $content = file_get_contents($file->getRealPath());
+//                if (preg_match('/<script\b[^>]*>(.*?)<\/script>/is', $content)) {
+//                    throw new \Exception("File $file contains unsafe content.");
+//                }
+//
+//                $filename = Str::uuid().'.' . $file->getClientOriginalExtension();
+//                $path = $file->storeAs(
+//                    'uploads/user_' . $user->id . '/'.'dir_demand_'.$request->dir_demand_id,
+//                    $filename,
+//                    'private'
+//                );
 
 
                 $doc_id = DocUser::updateOrCreate(
@@ -95,9 +131,9 @@ class UserService
                     ],
                     [
                         'user_id' => $user->id,
-
                         'dir_demand_id' => $request->dir_demand_id,
                         'adder_demands_id'=>$request->adder_demands_id,
+                        'check'=>true,
                         'path'=>null,
                         'ip_address'=>request()->ip(),
                     ]

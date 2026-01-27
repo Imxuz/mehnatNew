@@ -11,12 +11,14 @@ use App\Http\Controllers\RegionController;
 use App\Http\Controllers\DirDemandController;
 use App\Http\Controllers\OccupationController;
 use \App\Http\Controllers\FaqsController;
+use \App\Http\Controllers\AdderDemandController;
 use \App\Http\Controllers\SpecialOccupationController;
 
 
 
 Route::resource('region', RegionController::class);
 Route::resource('dir_demands', DirDemandController::class);
+Route::resource('adder_demands', AdderDemandController::class);
 Route::resource('occupation', OccupationController::class);
 Route::resource('specials', SpecialOccupationController::class);
 Route::get('/auth/user', [AuthUserController::class, 'userAdmin']);
@@ -48,9 +50,11 @@ Route::middleware('auth.jwt')->group(function () {
 Route::post('admin/login', [AdminController::class,'login']);
 Route::prefix('admin')->middleware('auth.admin.jwt')->group(function () {
     Route::resource('data', AdminController::class);
+
     Route::post('delayWorker', [AdminController::class,'delayWorker']);
     Route::get('search/occupation', [OccupationController::class,'searchOccupation']);
-    Route::post('user/clicks', [ClickController::class,'adminUserClicks']);
+    Route::get('user/clicks', [ClickController::class,'adminUserClicks']);
+    Route::post('response/click', [ClickController::class,'responseClick']);
     Route::get('user/clicks/export', [ClickController::class,'exportUsers']);
     Route::post('publication', [VacancyController::class,'publication'])->middleware('admin.permission:vacancy-publication');
     Route::resource('vacancy', VacancyController::class);

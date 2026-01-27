@@ -64,8 +64,10 @@ class VacancyController extends Controller
                 'region_id'      => $request->region_id,
                 'admin_id'       => $admin->id,
                 'occupation_id'  => $request->occupation_id,
-//                'open_at'        => $request->open_at,
-//                'close_at'       => $request->close_at,
+                'description' => json_encode([
+                    'ru' => $request->description_ru,
+                    'uz' => $request->description_uz,
+                ], JSON_UNESCAPED_UNICODE),
                 'specials'      =>  $request->specials,
             ]);
 
@@ -118,9 +120,10 @@ class VacancyController extends Controller
         public function update(UpdateVacancyRequest $request, Vacancy $vacancy)
     {
         $admin = auth('apiAdmin')->user();
-
+        if (!$admin->hasPermission('publication-vacancy-change')) {
+            abort(403, 'Sizda bu amalni bajarish huquqi yo‘q');
+        }
         DB::beginTransaction();
-
         try {
             $oldVacancy = $vacancy->toArray();
             $oldDemands = Demand::where('vacancy_id', $vacancy->id)->get()->toArray();
@@ -130,8 +133,12 @@ class VacancyController extends Controller
                 'admin_id'       => $admin->id,
                 'occupation_id'  => $request->occupation_id,
                 'specials'      =>  $request->specials,
-//                'open_at'        => $request->open_at,
-//                'close_at'       => $request->close_at,
+                'description' => json_encode([
+                    'ru' => $request->description_ru,
+                    'uz' => $request->description_uz,
+                ], JSON_UNESCAPED_UNICODE),
+
+
             ]);
             Demand::where('vacancy_id', $vacancy->id)->delete();
             $newDemands = [];
@@ -181,7 +188,7 @@ class VacancyController extends Controller
      */
     public function destroy(Vacancy $vacancy)
     {
-        //
+
     }
     public function publication(Request $request)
     {

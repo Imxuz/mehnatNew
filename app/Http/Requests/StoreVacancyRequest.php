@@ -30,6 +30,8 @@ class StoreVacancyRequest extends FormRequest
             "publication"    => "nullable|boolean",
             "specials"       => "array",
             "demands"        => "required|array|min:1",
+            "description_ru"        => "required|string|min:10",
+            "description_uz"        => "required|string|min:10",
             'demands.*.dir_demand_id' => 'required_with:demands.*.score,demands.*.adder_text|integer',
             'demands.*.score'         => 'required_with:demands.*.dir_demand_id,demands.*.adder_text|numeric',
             'demands.*.adder_text'    => 'required_with:demands.*.dir_demand_id,demands.*.score',

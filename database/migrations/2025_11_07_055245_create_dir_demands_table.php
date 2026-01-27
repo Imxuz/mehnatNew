@@ -18,6 +18,7 @@ return new class extends Migration
             $table->integer('sort_number');
             $table->enum('type', ['text', 'file']);
             $table->enum('formType', ['input', 'select','checkbox']);
+            $table->enum('forWho', ['user', 'admin', 'every']);
             $table->timestamps();
         });
     }

@@ -26,7 +26,7 @@ class UpdateVacancyRequest extends FormRequest
             "occupation_id"  => "required|integer",
 //            "open_at"        => "required|date_format:Y-m-d H:i:s",
 //            "close_at"       => "required|date_format:Y-m-d H:i:s",
-            "publication"    => "nullable|boolean",
+//            "publication"    => "nullable|boolean",
             "demands"        => "required|array|min:1",
             "specials"       => "array",
             'demands.*.dir_demand_id' => 'required_with:demands.*.score,demands.*.adder_text|integer',
