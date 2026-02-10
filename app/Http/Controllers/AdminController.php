@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Admin;
 use App\Http\Requests\StoreAdminRequest;
 use App\Http\Requests\UpdateAdminRequest;
+use App\Models\DocUser;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,8 +21,8 @@ class AdminController extends Controller
      */
     public function index()
     {
-        $user = User::all();
-        dd($user);
+        $admin = Admin::select('id','surname', 'name','middle_name','job_title')->get();
+        return response()->json(['admins'=> $admin]);
     }
 
     /**
@@ -143,6 +144,31 @@ class AdminController extends Controller
 
         // Agar excel yuklab berish kerak bo‘lsa:
         // return Excel::download(new TimeExport($filtered), 'filtered.xlsx');
+    }
+
+
+    public function checkDoc(Request $request){
+        $validator = Validator::make($request->all(), [
+            'doc_id' => 'required|exists:doc_users,id',
+            'check'  => 'required|boolean',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors'  => $validator->errors(),
+            ], 422);
+        }
+
+        $docUser = DocUser::findOrFail($request->doc_id);
+        $docUser->update([
+            'check' => (bool) $request->check,
+        ]);
+
+        return response()->json([
+            'message' => 'Document checked successfully',
+            'data' => $docUser,
+        ]);
+
     }
 
 }

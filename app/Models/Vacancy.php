@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Vacancy extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         "region_id" ,
          "dir_demand_id",
@@ -15,7 +17,10 @@ class Vacancy extends Model
          "admin_id"     ,
          "publication"  ,
          "description"  ,
-        "specials",
+         "specials",
+         "position",
+         "helpline",
+         "view_count",
     ];
 
     protected $casts = [
@@ -63,6 +68,11 @@ class Vacancy extends Model
     }
     public function clicks(){
         return $this->hasMany(Click::class,'vacancy_id','id');
+    }
+    public function admin()
+    {
+        return $this->belongsTo(Admin::class, 'admin_id', 'id')
+            ->select('id', 'surname', 'name', 'middle_name');
     }
 
     public function getSpecialDataAttribute()

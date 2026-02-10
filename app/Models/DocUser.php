@@ -21,5 +21,9 @@ class DocUser extends Model
     {
         return $this->belongsTo(DirDemand::class, 'dir_demand_id');
     }
+    public function adderDemand()
+    {
+        return $this->belongsTo(AdderDemand::class, 'adder_demands_id');
+    }
 
 }

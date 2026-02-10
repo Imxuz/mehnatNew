@@ -18,6 +18,9 @@ return new class extends Migration
             $table->foreignId('occupation_id')->constrained();
             $table->string('specials')->nullable();
             $table->text('description')->nullable();
+            $table->string('helpline',255)->nullable();
+            $table->integer('position')->nullable();
+            $table->integer('view_count')->default(0);
             $table->integer('publication')->nullable();
             $table->timestamp('open_at')->nullable();
             $table->timestamp('close_at')->nullable();

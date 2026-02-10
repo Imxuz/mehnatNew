@@ -33,7 +33,7 @@ class AuthUserService
             $verificationData['phone'] = $data['phone'];
             $user = User::create($verificationData);
         }
-        $attempt = PhoneAttempt::firstOrCreate(['user_id' => $user->id, 'ip_address' => request()->ip()]);
+        $attempt = PhoneAttempt::updateOrCreate(['user_id' => $user->id], ['ip_address' => request()->ip()]);
         if ($attempt->last_sms_sent_at && !$attempt->last_sms_sent_at->isToday()) {
             $attempt->update(['sms_sent_today' => 0]);
         }

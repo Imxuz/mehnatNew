@@ -24,7 +24,7 @@ class VacancyController extends Controller
 
 
 
-        $query = Vacancy::with('demands.dir_demand', 'occupation', 'region')->withCount('clicks')
+        $query = Vacancy::with('demands.dir_demand', 'occupation', 'region','admin')->withCount('clicks')
             ->orderBy('created_at', 'desc');
 
         if ($admin->hasPermission('sub-region-vacancy')) {
@@ -35,17 +35,20 @@ class VacancyController extends Controller
                 $q->where('sub_region_id', $admin->region_id);
             });
         }
-        $search = $request->search;
-        if ($search){
-            if ($search === 'active') {
+        $status = $request->status;
+        if ($status){
+            if ($status === 'active') {
                 $query->where('close_at', '>=', now()) ->whereNotNull('publication');
-            } elseif ($search === 'archive') {
+            } elseif ($status === 'archive') {
                 $query->where('close_at', '<=', now())->whereNotNull('publication');
-            } elseif ($search === 'published') {
+            } elseif ($status === 'published') {
                 $query->whereNotNull('publication'); }
-            elseif ($search === 'unpublished') {
+            elseif ($status === 'unpublished') {
                 $query->whereNull('publication');}
         }
+        $query->when($request->admin_id, function ($q, $adminId) {
+            $q->where('admin_id', $adminId);
+        });
 
         $perPage = $request->get('per_page', 2);
         return response()->json($query->paginate($perPage));
@@ -64,6 +67,8 @@ class VacancyController extends Controller
                 'region_id'      => $request->region_id,
                 'admin_id'       => $admin->id,
                 'occupation_id'  => $request->occupation_id,
+                'position'  => $request->position,
+                'helpline'  => $request->helpline,
                 'description' => json_encode([
                     'ru' => $request->description_ru,
                     'uz' => $request->description_uz,
@@ -132,6 +137,8 @@ class VacancyController extends Controller
                 'region_id'      => $request->region_id,
                 'admin_id'       => $admin->id,
                 'occupation_id'  => $request->occupation_id,
+                'position'  => $request->position,
+                'helpline'  => $request->helpline,
                 'specials'      =>  $request->specials,
                 'description' => json_encode([
                     'ru' => $request->description_ru,
@@ -188,28 +195,89 @@ class VacancyController extends Controller
      */
     public function destroy(Vacancy $vacancy)
     {
-
+        $admin = auth('apiAdmin')->user();
+        if (!$admin->hasPermission('delete-vacancy')) {
+            abort(403, 'Sizda bu amalni bajarish huquqi yo‘q');
+        }
+        $oldVacancy = $vacancy->toArray();
+        $oldDemands = $vacancy->demands()->get()->toArray();
+        VacancyLog::create([
+            'admin_id'   => $admin->id,
+            'model'      => Vacancy::class,
+            'action'     => 'delete',
+            'old_values' => [
+                'vacancy' => $oldVacancy,
+                'demands' => $oldDemands,
+            ],
+            'new_values' => [
+                'admin_id'   => $admin->id,
+            ],
+        ]);
+        $vacancy->delete();
+        return response()->json([
+            'message' => 'Vakansiya muvaffaqiyatli o‘chirildi'
+        ]);
     }
+
     public function publication(Request $request)
     {
-
         $admin = auth('apiAdmin')->user();
         if (!$admin) {
             return response()->json(['error' => 'Admin not authenticated'], 401);
         }
-
         $vacancy = Vacancy::find($request->id);
-
         if (!$vacancy) {
             return response()->json(['error' => 'Vacancy not found'], 404);
-        }elseif ($vacancy->publication){
+        }
+        if ($vacancy->publication) {
             return response()->json(['error' => 'Ushbu vakansiya publicatsiya qilingan'], 400);
         }
+        $oldVacancy = $vacancy->toArray();
+        $oldDemands = $vacancy->demands()->get()->toArray();
         $vacancy->publication = $admin->id;
         $vacancy->open_at = now();
-        $vacancy->close_at = now()->addDay(10);
+        $vacancy->close_at = now()->addDay(10)->setTime(17, 0, 0);
         $vacancy->save();
+        VacancyLog::create([
+            'admin_id'   => $admin->id,
+            'model'      => Vacancy::class,
+            'action'     => 'publish',
+            'old_values' => [
+                'vacancy' => $oldVacancy,
+                'demands' => $oldDemands,
+            ],
+            'new_values' => [
+                'publication' => $vacancy->publication,
+                'open_at'     => $vacancy->open_at,
+                'close_at'    => $vacancy->close_at,
+                'admin_id'   => $admin->id,
+            ],
+        ]);
 
-        return response()->json($vacancy);
+        return response()->json([
+            'message' => 'Vakansiya muvaffaqiyatli chop etildi',
+            'data'    => $vacancy
+        ]);
+    }
+
+    public function viewCount(Request $request)
+    {
+        $request->validate([
+            'id' => 'required|exists:vacancies,id'
+        ]);
+        try {
+            $vacancy = Vacancy::findOrFail($request->id);
+            $vacancy->increment('view_count');
+            return response()->json([
+                'success' => true,
+                'new_count' => $vacancy->view_count
+            ], 200);
+
+        } catch (\Exception $e) {
+//            return response()->json([
+//                'success' => false,
+//                'message' => 'Xatolik yuz berdi'
+//            ], 500);
+        }
     }
 }

@@ -38,8 +38,9 @@ class UsersInfoExport implements FromCollection, WithHeadings, WithMapping, With
                 $sheet->getColumnDimension('E')->setWidth(15);
                 $sheet->getColumnDimension('F')->setWidth(15);
                 $sheet->getColumnDimension('G')->setWidth(60);
+                $sheet->getColumnDimension('H')->setWidth(15);
 
-                $sheet->getStyle('A1:G1')->applyFromArray([
+                $sheet->getStyle('A1:H1')->applyFromArray([
                     'font' => [
                         'bold' => true,
                         'color' => ['argb' => Color::COLOR_WHITE],
@@ -62,7 +63,7 @@ class UsersInfoExport implements FromCollection, WithHeadings, WithMapping, With
                     ],
                 ]);
                 $highestRow = $sheet->getHighestRow();
-                $sheet->getStyle("A2:G{$highestRow}")->applyFromArray([
+                $sheet->getStyle("A2:H{$highestRow}")->applyFromArray([
                     'font' => [
                         'italic' => false,
                     ],
@@ -80,7 +81,7 @@ class UsersInfoExport implements FromCollection, WithHeadings, WithMapping, With
 
                 $sheet->getStyle('B')->getAlignment()->setWrapText(true);
                 $sheet->getStyle('D')->getAlignment()->setWrapText(true);
-                $sheet->getStyle('G')->getAlignment()->setWrapText(true);
+                $sheet->getStyle('H')->getAlignment()->setWrapText(true);
             },
         ];
 
@@ -114,6 +115,7 @@ class UsersInfoExport implements FromCollection, WithHeadings, WithMapping, With
             'PINFL',
             'Telefon',
             'Topshirilgan hujjatlar',
+            'Status',
         ];
     }
 
@@ -132,6 +134,7 @@ class UsersInfoExport implements FromCollection, WithHeadings, WithMapping, With
                     : null)
                 ->filter()
                 ->join('; '),
+            optional($click)->sent." " ?? '',
         ];
     }
 

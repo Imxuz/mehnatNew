@@ -180,7 +180,6 @@ class ClickController extends Controller
 
     public function exportUsers(Request $request)
     {
-        // 1-QADAM: Request kelyaptimi?
         if (!$request->has('vacancy_id')) {
             return response()->json(['error' => 'Vacancy ID berilmadi'], 400);
         }

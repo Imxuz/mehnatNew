@@ -26,10 +26,11 @@ Route::get('/auth/user', [AuthUserController::class, 'userAdmin']);
 Route::post('user/create', [AuthUserController::class, 'create']);
 Route::post('userUpdate', [AuthUserController::class, 'userUpdate']);
 Route::post('resend-code', [AuthUserController::class, 'resendCode']);
-Route::post('verify-code', [AuthUserController::class, 'verifyCode']);
-Route::post('/login', [AuthUserController::class, 'login']);
+Route::post('verify-code', [AuthUserController::class, 'verifyCode'])->middleware('throttle:3,1');;
+Route::post('/login', [AuthUserController::class, 'login'])->middleware('throttle:5,1');
 Route::post('/refresh', [AuthUserController::class, 'refresh']);
 Route::post('/logout', [AuthUserController::class, 'logout']);
+Route::post('/vacancy-count', [VacancyController::class, 'viewCount'])->middleware('throttle:10,1');
 Route::get('vacancy', [UserVacancyController::class,"index"]);
 Route::resource('faqs', FaqsController::class);
 
@@ -52,6 +53,7 @@ Route::prefix('admin')->middleware('auth.admin.jwt')->group(function () {
     Route::resource('data', AdminController::class);
 
     Route::post('delayWorker', [AdminController::class,'delayWorker']);
+    Route::post('check', [AdminController::class,'checkDoc']);
     Route::get('search/occupation', [OccupationController::class,'searchOccupation']);
     Route::get('user/clicks', [ClickController::class,'adminUserClicks']);
     Route::post('response/click', [ClickController::class,'responseClick']);
@@ -59,6 +61,7 @@ Route::prefix('admin')->middleware('auth.admin.jwt')->group(function () {
     Route::post('publication', [VacancyController::class,'publication'])->middleware('admin.permission:vacancy-publication');
     Route::resource('vacancy', VacancyController::class);
     Route::get('docs/{filepath}', [UserController::class,'show'])->where('filepath', '.*');
+    Route::get('users/infos', [UserController::class,'tableUsers']);
 });
 
 

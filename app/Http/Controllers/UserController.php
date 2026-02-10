@@ -83,7 +83,6 @@ class UserController extends Controller
 
         $file = storage_path('app/private/' . $filepathUser);
 
-        // Cache control headers qo'shish
         return response()->file($file, [
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
             'Pragma' => 'no-cache',
@@ -210,6 +209,25 @@ class UserController extends Controller
             'status'  => $response->status(),
             'message' => $response->json() ?: 'API error',
         ], $response->status() ?: 422);
+    }
+
+
+    public function tableUsers(Request $request)
+    {
+        $perPage = $request->get('perPage', 100);
+        $search  = $request->get('searchName');
+
+        $query = User::with([
+            'region:id,title',
+            'docUser',
+            'docUser.demand:id,title',
+            'docUser.adderDemand:id,adder_text',
+        ])->whereNotNull('name')->whereHas('docUser');
+        if (!empty($search)) {
+            $query->where('name', 'LIKE', "%{$search}%");
+        }
+        $tableUser = $query->paginate($perPage);
+        return response()->json($tableUser);
     }
 
 
