@@ -18,6 +18,7 @@ return new class extends Migration
             $table->integer('admin_id')->nullable();
             $table->text('comment')->nullable();
             $table->enum('sent',['accept', 'cancel'])->nullable();
+            $table->unique(['user_id', 'vacancy_id']);
             $table->timestamps();
         });
     }

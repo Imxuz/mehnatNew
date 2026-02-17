@@ -222,6 +222,8 @@ class UserController extends Controller
             'docUser',
             'docUser.demand:id,title',
             'docUser.adderDemand:id,adder_text',
+            'vacanciesUser.clickVacancy.occupation:id,occupation',
+
         ])->whereNotNull('name')->whereHas('docUser');
         if (!empty($search)) {
             $query->where('name', 'LIKE', "%{$search}%");

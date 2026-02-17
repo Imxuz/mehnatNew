@@ -71,4 +71,57 @@ class RegionController extends Controller
     {
         //
     }
+
+
+    public function adminDivision()
+    {
+        $query = Region::select('id', 'name', 'title', 'division', 'div_region')
+            ->whereNotNull('division')
+            ->whereNull('div_region')
+            ->with(['divChildren' => function($q) {
+                $q->select('id', 'name', 'title', 'division', 'div_region');
+            }]);
+        if (auth('apiAdmin')->check()) {
+            $admin = auth('apiAdmin')->user();
+
+            if ($admin->hasPermission('region-vacancy')) {
+                $query->where(function ($q) use ($admin) {
+                    $q->where('id', $admin->region_id)
+                        ->orWhereHas('divChildren', function ($c) use ($admin) {
+                            $c->where('id', $admin->region_id);
+                        });
+                });
+            }
+            if ($admin->hasPermission('sub-region-vacancy')) {
+                $query->where(function ($q) use ($admin) {
+                    $q->where('id', $admin->region_id)
+                        ->orWhereHas('divChildren', function ($c) use ($admin) {
+                            $c->where('id', $admin->region_id);
+                        });
+                });
+            }
+        }
+        $regions = $query->get()->map(function ($region) {
+            $parentData = [
+                'id' => $region->id,
+                'name' => $region->name,
+                'title' => $region->title,
+                'division' => $region->division,
+                'div_region' => $region->div_region,
+                'is_main' => true
+            ];
+            $childrenArray = $region->divChildren ? $region->divChildren->toArray() : [];
+            array_unshift($childrenArray, $parentData);
+            return [
+                'id' => $region->id,
+                'name' => $region->name,
+                'title' => $region->title,
+                'division' => $region->division,
+                'div_region' => $region->div_region,
+                'children' => $childrenArray // Front-end uchun kalit so'zni 'children' qoldiraverdim
+            ];
+        });
+
+        return response()->json($regions);
+    }
 }

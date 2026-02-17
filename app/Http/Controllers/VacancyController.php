@@ -21,19 +21,28 @@ class VacancyController extends Controller
     public function index(Request $request)
     {
         $admin = auth('apiAdmin')->user();
-
-
-
-        $query = Vacancy::with('demands.dir_demand', 'occupation', 'region','admin')->withCount('clicks')
+        $regionAdmin = Region::find($admin->region_id);
+        $query = Vacancy::with('demands.dir_demand', 'occupation', 'divRegion','admin')->withCount('clicks')
             ->orderBy('created_at', 'desc');
-
         if ($admin->hasPermission('sub-region-vacancy')) {
             $query->where('region_id', $admin->region_id);
 
         } elseif ($admin->hasPermission('region-vacancy')) {
-            $query->whereHas('region', function ($q) use ($admin) {
-                $q->where('sub_region_id', $admin->region_id);
+            $query->whereHas('divRegion', function ($q) use ($regionAdmin,$admin) {
+                $q->where(function ($sub) use ($regionAdmin,$admin) {
+                    if (!empty($regionAdmin->div_region)) {
+                        $sub->orWhere('div_region', $regionAdmin->div_region);
+                    }
+                    if (!empty($regionAdmin->division)) {
+                        $sub->orWhere('division', $regionAdmin->division);
+                    }
+                    $sub->orWhere('admin_id', $admin->id)
+                        ->orWhere('division', $regionAdmin->id)
+                        ->orWhere('div_region', $regionAdmin->id);
+                });
             });
+        }elseif(!($admin->hasPermission('all-vacancy-view'))) {
+            return response()->json(['error'=>"Sizda bunday huquq yo'q"],403);
         }
         $status = $request->status;
         if ($status){

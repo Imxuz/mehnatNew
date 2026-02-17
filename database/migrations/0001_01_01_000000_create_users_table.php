@@ -30,6 +30,7 @@ return new class extends Migration
             $table->boolean('is_verified')->default(false);
             $table->timestamp('verification_code_expires_at')->nullable();
             $table->rememberToken();
+            $table->softDeletes();
             $table->timestamps();
         });
 

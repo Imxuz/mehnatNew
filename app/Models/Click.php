@@ -24,4 +24,8 @@ class Click extends Model
         return $this->hasMany(DocUserHistory::class, 'click_id', 'id');
     }
 
+    public function clickVacancy(){
+        return $this->belongsTo(Vacancy::class, 'vacancy_id', 'id');
+    }
+
 }

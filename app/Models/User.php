@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -19,6 +20,7 @@ class User extends Authenticatable implements JWTSubject
      *
      * @var list<string>
      */
+    use SoftDeletes;
     protected $fillable = [
         'name',
         'email',
@@ -34,8 +36,8 @@ class User extends Authenticatable implements JWTSubject
         'passport_series',
         'passport_number',
         'birthday',
-        'name',
         'address',
+
     ];
 
     /**
@@ -80,5 +82,8 @@ class User extends Authenticatable implements JWTSubject
 
     public function docUserHistory(){
         return $this->hasMany(DocUserHistory::class, 'user_id', 'id');
+    }
+    public function vacanciesUser(){
+        return $this->hasMany(Click::class, 'user_id', 'id');
     }
 }

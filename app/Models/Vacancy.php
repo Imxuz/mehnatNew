@@ -55,6 +55,13 @@ class Vacancy extends Model
             ->select('id', 'title', 'sub_region_id')
             ->with('parentRegion');
     }
+
+    public function divRegion()
+    {
+        return $this->hasOne(Region::class, 'id', 'region_id')
+            ->select('id', 'title', 'sub_region_id','division', 'div_region')
+            ->with('divParentRegion');
+    }
     public function oClick()
     {
         $user = auth('api')->user();

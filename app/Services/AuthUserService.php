@@ -103,6 +103,22 @@ class AuthUserService
         }
     }
 
+    public function resetCode(string $phone): string
+    {
+        $user = User::where('phone', $phone)->first();
+
+        if (!$user) {
+            throw new \Exception('User topilmadi', 404);
+        }
+
+        try {
+            $this->sendVerificationCode($user);
+            return 'Tasdiqlash kodi muvaffaqiyatli yuborildi';
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage(), $e->getCode() ?: 429);
+        }
+    }
+
 
 
 }
