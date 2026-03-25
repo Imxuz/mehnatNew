@@ -30,7 +30,8 @@ class UserController extends Controller
         $dir_docs_demands = DirDemand::with('adder_demands')
             ->leftJoin('doc_users as u', function ($join) use ($userId) {
                 $join->on('u.dir_demand_id', '=', 'dir_demands.id')
-                    ->where('u.user_id', '=', $userId);
+                    ->where('u.user_id', '=', $userId)
+                    ->whereNull('u.deleted_at');;
             })
             ->select(
                 'dir_demands.*',

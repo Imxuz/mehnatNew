@@ -28,4 +28,10 @@ class Click extends Model
         return $this->belongsTo(Vacancy::class, 'vacancy_id', 'id');
     }
 
+    public function userDocs(){
+        return $this->hasMany(DocUser::class, 'user_id', 'user_id')
+            ->select(['id','user_id','path','dir_demand_id'])
+            ->with('demand');
+    }
+
 }

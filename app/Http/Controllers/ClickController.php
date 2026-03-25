@@ -12,6 +12,7 @@ use App\Models\DirDemand;
 use App\Models\DocUser;
 use App\Models\DocUserHistory;
 use App\Models\Vacancy;
+use App\Services\DefaultAdminService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -21,7 +22,7 @@ class ClickController extends Controller
 {
     protected string $hrUrl;
 
-    public function __construct()
+    public function __construct(private DefaultAdminService $defaultAdminService)
     {
         $this->hrUrl = env('HR_MEHNAT_API');
     }
@@ -169,6 +170,7 @@ class ClickController extends Controller
                     'user:id,name,pinfl,phone',
                     'doc_histories:id,click_id,user_id,path,dir_demand_id',
                     'doc_histories.demand:id,title',
+                    'userDocs',
                 ])
                 ->get();
 
@@ -200,6 +202,13 @@ class ClickController extends Controller
 
     public function responseClick(Request $request)
     {
+        $this->defaultAdminService->errAllVacancyView();
+        $admin = auth('apiAdmin')->user();
+        if (!$admin->hasPermission('all-vacancy-view')) {
+            abort(403, "Sizda bunday huquq yo'q");
+        }
+        return response()->json(['status' => 'success', 'message' => $admin]);
+
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:clicks,id',
             'comment' => 'required|string',
@@ -211,6 +220,7 @@ class ClickController extends Controller
                 'errors' => $validator->errors()
             ], 422);
         }
+
         $admin = auth('apiAdmin')->id();
         $click = Click::findOrFail($request->id);
         $oldValues = $click;

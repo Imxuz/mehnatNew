@@ -9,10 +9,14 @@ use App\Http\Requests\StoreDemandRequest;
 use App\Http\Requests\UpdateDemandRequest;
 use App\Models\Occupation;
 use App\Models\SpecialOccupation;
+use App\Services\DefaultAdminService;
 use Illuminate\Http\Request;
 
 class SpecialOccupationController extends Controller
 {
+    public function __construct(private DefaultAdminService $defaultAdminService){
+
+    }
     /**
      * Display a listing of the resource.
      */
@@ -27,6 +31,7 @@ class SpecialOccupationController extends Controller
      */
     public function store(StoreSpecialOccupationRequest $request)
     {
+        $this->defaultAdminService->errAllVacancyView();
         $admin = auth('apiAdmin')->id();
         SpecialOccupation::create([
             'title' => json_encode([
@@ -45,10 +50,6 @@ class SpecialOccupationController extends Controller
      */
     public function show($occupation_id)
     {
-        $admin = auth('apiAdmin')->user();
-        if (!$admin) {
-            return response()->json('Sizda ruxsat yo‘q', 401);
-        }
         $occupSpec = SpecialOccupation::where('occupation_id', $occupation_id)->get();
         return response()->json($occupSpec);
     }
@@ -58,8 +59,11 @@ class SpecialOccupationController extends Controller
      */
     public function update(UpdateSpecialOccupationRequest $request, $id)
     {
+
+
         $admin = auth('apiAdmin')->id();
-        if (!$admin) return response()->json('Xatolik', 401);
+        $this->defaultAdminService->errAllVacancyView();
+
         $special = SpecialOccupation::findOrFail($id);
         $special->update([
             'title' => [

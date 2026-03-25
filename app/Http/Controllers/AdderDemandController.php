@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\AdderDemand;
 use App\Http\Requests\StoreAdderDemandRequest;
 use App\Http\Requests\UpdateAdderDemandRequest;
+use App\Services\DefaultAdminService;
 
 class AdderDemandController extends Controller
 {
+    public function __construct(private DefaultAdminService $defaultAdminService){}
     /**
      * Display a listing of the resource.
      */
@@ -22,6 +24,7 @@ class AdderDemandController extends Controller
      */
     public function store(StoreAdderDemandRequest $request)
     {
+        $this->defaultAdminService->errAllVacancyView();
         AdderDemand::create($request->validated());
     }
 
@@ -38,6 +41,7 @@ class AdderDemandController extends Controller
      */
     public function update(UpdateAdderDemandRequest $request, AdderDemand $adderDemand)
     {
+        $this->defaultAdminService->errAllVacancyView();
         AdderDemand::update($request->validated());
     }
 

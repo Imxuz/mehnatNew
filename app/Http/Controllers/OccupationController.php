@@ -8,9 +8,13 @@ use App\Http\Requests\StoreOccupationRequest;
 use App\Http\Requests\UpdateOccupationRequest;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Services\DefaultAdminService;
 
 class OccupationController extends Controller
 {
+    public function __construct(private DefaultAdminService $defaultAdminService){
+
+    }
     /**
      * Display a listing of the resource.
      */
@@ -25,9 +29,7 @@ class OccupationController extends Controller
      */
     public function store(StoreOccupationRequest $request)
     {
-        $admin = auth('apiAdmin')->user();
-        if (!$admin) return response()->json('Xatolik', 401);
-
+        $this->defaultAdminService->errAllVacancyView();
         Occupation::create([
             'occupation' => json_encode([
                 'ru' => $request->title_ru,
@@ -59,8 +61,8 @@ class OccupationController extends Controller
      */
     public function update(UpdateOccupationRequest $request)
     {
-        $admin = auth('apiAdmin')->user();
-        if (!$admin) return response()->json('Xatolik', 401);
+        $this->defaultAdminService->errAllVacancyView();
+
         $occupation = Occupation::find($request->id);
         $occupation->update([
             'occupation' => json_encode([

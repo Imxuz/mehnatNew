@@ -94,6 +94,7 @@ class VacancyController extends Controller
                         'adder_text'    => $demand['adder_text'] ?? null,
                         'vacancy_id'    => $vacancy->id,
                         'score'         => $demand['score'] ?? null,
+                        'demand_type'         => $demand['demand_type'],
                     ]);
                 }
             }
@@ -137,6 +138,9 @@ class VacancyController extends Controller
         if (!$admin->hasPermission('publication-vacancy-change')) {
             abort(403, 'Sizda bu amalni bajarish huquqi yo‘q');
         }
+        if (isset($vacancy->publication)){
+            abort(403, "Bu vakansiya e'lon qilingan. Shu sababli o'zgartira olmaysiz.");
+        }
         DB::beginTransaction();
         try {
             $oldVacancy = $vacancy->toArray();
@@ -144,7 +148,7 @@ class VacancyController extends Controller
 
             $vacancy->update([
                 'region_id'      => $request->region_id,
-                'admin_id'       => $admin->id,
+//                'admin_id'       => $admin->id,
                 'occupation_id'  => $request->occupation_id,
                 'position'  => $request->position,
                 'helpline'  => $request->helpline,
@@ -165,6 +169,7 @@ class VacancyController extends Controller
                         'adder_text'    => $demand['adder_text'] ?? null,
                         'vacancy_id'    => $vacancy->id,
                         'score'         => $demand['score'] ?? null,
+                        'demand_type'   => $demand['demand_type'],
                     ]);
                     $newDemands[] = $new->toArray();
                 }

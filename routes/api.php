@@ -14,6 +14,7 @@ use \App\Http\Controllers\FaqsController;
 use \App\Http\Controllers\AdderDemandController;
 use \App\Http\Controllers\SpecialOccupationController;
 use \App\Http\Controllers\PasswordResetController;
+use \App\Http\Controllers\AiController;
 
 
 
@@ -25,8 +26,9 @@ Route::resource('specials', SpecialOccupationController::class);
 Route::get('/auth/user', [AuthUserController::class, 'userAdmin']);
 Route::prefix('auth')->group(function () {
     Route::post('password/request-reset', [PasswordResetController::class, 'requestReset'])->middleware('throttle:10,1');
-    Route::post('password/verify-pinfl', [PasswordResetController::class, 'verifyPinfl'])->middleware('throttle:10,1');
     Route::post('password/request-deletion', [PasswordResetController::class, 'requestDeletion'])->middleware('throttle:10,1');
+    Route::post('password/verify-pinfl', [PasswordResetController::class, 'verifyPinfl'])->middleware('throttle:10,1');
+    Route::post('password/verify-code', [PasswordResetController::class, 'verifyCode'])->middleware('throttle:10,1');
 });
 
 Route::post('user/create', [AuthUserController::class, 'create']);
@@ -53,6 +55,7 @@ Route::middleware('auth.jwt')->group(function () {
 });
 
 
+Route::post('ai/response', [AiController::class, 'getAiResponse']);
 
 Route::post('admin/login', [AdminController::class,'login']);
 Route::prefix('admin')->middleware('auth.admin.jwt')->group(function () {

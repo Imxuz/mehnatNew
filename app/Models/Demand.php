@@ -11,6 +11,7 @@ class Demand extends Model
         'adder_text'   ,
         'vacancy_id'   ,
         'score'        ,
+        'demand_type'  ,
     ];
 
     protected $casts = [
@@ -21,7 +22,7 @@ class Demand extends Model
     ];
 
     public function dir_demand(){
-        return $this->hasOne(DirDemand::class,'id','dir_demand_id')->select('id','title','name','formType');;
+        return $this->hasOne(DirDemand::class,'id','dir_demand_id')->select('id','title','name','formType',);;
     }
     public function getAdderTextsAttribute()
     {

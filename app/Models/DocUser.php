@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DocUser extends Model
 {
+    use SoftDeletes;
     protected $fillable = [
         'user_id',
         'dir_demand_id',
@@ -19,7 +21,7 @@ class DocUser extends Model
 
     public function demand()
     {
-        return $this->belongsTo(DirDemand::class, 'dir_demand_id');
+        return $this->belongsTo(DirDemand::class, 'dir_demand_id')->select(['title','name','id','forWho','formType','type']);
     }
     public function adderDemand()
     {

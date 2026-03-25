@@ -5,9 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\DirDemand;
 use App\Http\Requests\StoreDirDemandRequest;
 use App\Http\Requests\UpdateDirDemandRequest;
+use App\Services\DefaultAdminService;
+use Illuminate\Support\Facades\Auth;
 
 class DirDemandController extends Controller
 {
+
+    public function __construct(private DefaultAdminService $defaultAdminService){}
     /**
      * Display a listing of the resource.
      */
@@ -22,6 +26,7 @@ class DirDemandController extends Controller
      */
     public function store(StoreDirDemandRequest $request)
     {
+        $this->defaultAdminService->errAllVacancyView();
         DirDemand::create($request->validated());
     }
 
@@ -38,6 +43,7 @@ class DirDemandController extends Controller
      */
     public function update(UpdateDirDemandRequest $request, DirDemand $dirDemand)
     {
+        $this->defaultAdminService->errAllVacancyView();
         $dirDemand->update($request->validated());
     }
 

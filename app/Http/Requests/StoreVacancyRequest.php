@@ -37,6 +37,7 @@ class StoreVacancyRequest extends FormRequest
             'demands.*.dir_demand_id' => 'required_with:demands.*.score,demands.*.adder_text|integer',
             'demands.*.score'         => 'required_with:demands.*.dir_demand_id,demands.*.adder_text|numeric',
             'demands.*.adder_text'    => 'required_with:demands.*.dir_demand_id,demands.*.score',
+            'demands.*.demand_type'   => 'required_with:demands.*.dir_demand_id,demands.*.score,demands.*.adder_text',
 //            'demands.*.adder_text'    => 'required_with:demands.*.dir_demand_id,demands.*.score|array',
         ];
     }

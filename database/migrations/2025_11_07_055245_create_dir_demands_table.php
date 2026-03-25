@@ -19,6 +19,8 @@ return new class extends Migration
             $table->enum('type', ['text', 'file']);
             $table->enum('formType', ['input', 'select','checkbox']);
             $table->enum('forWho', ['user', 'admin', 'every']);
+            $table->enum('demand_type', ['main', 'additional']);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

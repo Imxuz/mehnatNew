@@ -40,6 +40,7 @@ class Vacancy extends Model
                 'demands.vacancy_id',
                 'demands.adder_text',
                 'demands.score',
+                'demands.demand_type',
                 'demands.dir_demand_id',
                 'd.formType as formType'
             );

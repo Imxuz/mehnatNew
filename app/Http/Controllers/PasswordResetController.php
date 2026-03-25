@@ -158,6 +158,7 @@ class PasswordResetController extends Controller
                 'message' => 'SMS kod xato kiritildi. Iltimos qayta kiriting.'
             ], 422);
         }
+        $user->update(['is_verified'=>false, 'verification_code'=>null, 'verification_code_expires_at'=>null]);
         $user->delete();
 
         return response()->json([
