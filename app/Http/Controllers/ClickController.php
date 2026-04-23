@@ -203,11 +203,6 @@ class ClickController extends Controller
     public function responseClick(Request $request)
     {
         $this->defaultAdminService->errAllVacancyView();
-        $admin = auth('apiAdmin')->user();
-        if (!$admin->hasPermission('all-vacancy-view')) {
-            abort(403, "Sizda bunday huquq yo'q");
-        }
-        return response()->json(['status' => 'success', 'message' => $admin]);
 
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:clicks,id',

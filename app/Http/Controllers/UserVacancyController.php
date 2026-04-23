@@ -78,5 +78,11 @@ class UserVacancyController extends Controller
         ]);
     }
 
+    public function archive(){
+        $vacancies = Vacancy::with('demands.dir_demand','occupation','region','oClick')->orderBy('created_at','desc')
+            ->where('publication','!=', null)->where('close_at',"<=",now())->get();
+        return response()->json($vacancies);
+    }
+
 
 }

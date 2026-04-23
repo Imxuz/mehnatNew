@@ -92,6 +92,12 @@ class Vacancy extends Model
         return SpecialOccupation::select('title')->where('id', $value)->first();
     }
 
+    public function telegClick()
+    {
+        return $this->hasOne(Click::class, 'vacancy_id', 'id')
+            ->select('id', 'vacancy_id', 'user_id','sent');
+    }
+
 
 
 }

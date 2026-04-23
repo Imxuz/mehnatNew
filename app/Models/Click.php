@@ -30,7 +30,7 @@ class Click extends Model
 
     public function userDocs(){
         return $this->hasMany(DocUser::class, 'user_id', 'user_id')
-            ->select(['id','user_id','path','dir_demand_id'])
+            ->select(['id','user_id','path','dir_demand_id','check'])
             ->with('demand');
     }
 

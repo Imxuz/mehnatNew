@@ -21,7 +21,7 @@ class DefaultAdminService
     }
     public function errAllVacancyView(){
         $admin = $this->admin();
-        if ($admin->hasPermission('all-vacancy-view')) {
+        if ($admin->hasPermission('view-admin-panel')) {
             abort(403, "Sizda bunday huquq yo'q");
         }
     }

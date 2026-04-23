@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.jwt' => \App\Http\Middleware\AuthUserJWT::class,
             'auth.admin.jwt' => \App\Http\Middleware\AuthAdminJWT::class,
             'admin.permission' => \App\Http\Middleware\AdminPermissionMiddleware::class,
+            'verify.telegram.signature' => \App\Http\Middleware\VerifyTelegramSignature::class,
 
         ]);
     })

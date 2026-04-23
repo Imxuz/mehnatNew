@@ -15,6 +15,8 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
+    'telegram_api_secret' => env('TELEGRAM_API_SECRET'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

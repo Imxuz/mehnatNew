@@ -15,6 +15,7 @@ use \App\Http\Controllers\AdderDemandController;
 use \App\Http\Controllers\SpecialOccupationController;
 use \App\Http\Controllers\PasswordResetController;
 use \App\Http\Controllers\AiController;
+use \App\Http\Controllers\UserTelegramController;
 
 
 
@@ -40,6 +41,7 @@ Route::post('/refresh', [AuthUserController::class, 'refresh']);
 Route::post('/logout', [AuthUserController::class, 'logout']);
 Route::post('/vacancy-count', [VacancyController::class, 'viewCount'])->middleware('throttle:10,1');
 Route::get('vacancy', [UserVacancyController::class,"index"]);
+Route::get('vacancy/archive', [UserVacancyController::class,"archive"]);
 Route::resource('faqs', FaqsController::class);
 
 
@@ -52,6 +54,7 @@ Route::middleware('auth.jwt')->group(function () {
     Route::resource('userVacancy', UserVacancyController::class);
     Route::post('click/vacancyInfo',[ UserVacancyController::class, 'userVacancy']);
     Route::post('/get-passport-data',[ UserController::class, 'getPassportData']);
+    Route::post('/telegram/login',[UserTelegramController::class, 'genCodeTelegram']);
 });
 
 
@@ -72,6 +75,16 @@ Route::prefix('admin')->middleware('auth.admin.jwt')->group(function () {
     Route::get('docs/{filepath}', [UserController::class,'show'])->where('filepath', '.*');
     Route::get('users/infos', [UserController::class,'tableUsers']);
     Route::get('divisions', [RegionController::class, 'adminDivision']);
+});
+
+
+Route::prefix('telegram')->middleware('verify.telegram.signature')->group(function (){
+    Route::post('data/check',[UserTelegramController::class,'checkUser']);
+    Route::post('exit',[UserTelegramController::class,'exitUser']);
+    Route::post('check-auth', [UserTelegramController::class, 'checkAuth']);
+    Route::post('myVacancies', [UserTelegramController::class, 'myVacancies'])->middleware('throttle:3,1');
+    Route::post('/users/lists', [UserTelegramController::class, 'usersList']);
+    Route::post('/publication/vacancy', [UserTelegramController::class, 'publicationId']);
 });
 
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendTelegramNewVacancy;
 use App\Models\Demand;
 use App\Models\Permission;
 use App\Models\PermissionRole;
@@ -12,6 +13,7 @@ use App\Http\Requests\UpdateVacancyRequest;
 use App\Models\VacancyLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 
 class VacancyController extends Controller
 {
@@ -267,6 +269,12 @@ class VacancyController extends Controller
                 'admin_id'   => $admin->id,
             ],
         ]);
+        $data = json_encode([
+            'vacancy_id' => $request->id,
+            'type' => 'new_vacancy'
+        ]);
+//        SendTelegramNewVacancy::dispatch($request->id)->onQueue('telegram_new_vacancy_queue');
+        Queue::connection('rabbitmq')->pushRaw($data, 'telegram_new_vacancy_queue');
 
         return response()->json([
             'message' => 'Vakansiya muvaffaqiyatli chop etildi',
