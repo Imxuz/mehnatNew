@@ -38,10 +38,14 @@ class AuthUserService
             $attempt->update(['sms_sent_today' => 0]);
         }
         if ($attempt->sms_sent_today >= 3) {
-            throw new \Exception('Siz bugun 3 martadan ko‘p kod so‘ray olmaysiz.');
+            throw ValidationException::withMessages([
+                'phone' => ['Siz bugun 3 martadan ko‘p kod so‘ray olmaysiz.'],
+            ]);
         }
         if ($attempt->last_sms_sent_at && $attempt->last_sms_sent_at->addSeconds(60)->isFuture()) {
-            throw new \Exception('Kod yuborishdan oldin 60 soniya kuting.');
+            throw ValidationException::withMessages([
+                'phone' => ['Kod yuborishdan oldin 60 soniya kuting.'],
+            ]);
         }
 //        SendVerificationSms::dispatch($user->phone, $user->verification_code);
         $this->smsService->sendVerificationCode($user->phone, $user->verification_code);
@@ -62,10 +66,14 @@ class AuthUserService
             $attempt->update(['sms_sent_today' => 0]);
         }
         if ($attempt->sms_sent_today >= 3) {
-            throw new \Exception('Siz bugun 3 martadan ko‘p kod so‘ray olmaysiz.');
+            throw ValidationException::withMessages([
+                'phone' => ['Siz bugun 3 martadan ko‘p kod so‘ray olmaysiz.'],
+            ]);
         }
         if ($attempt->last_sms_sent_at && $attempt->last_sms_sent_at->addSeconds(60)->isFuture()) {
-            throw new \Exception('Kod yuborishdan oldin 60 soniya kuting.');
+            throw ValidationException::withMessages([
+                'phone' => ['Kod yuborishdan oldin 60 soniya kuting.'],
+            ]);
         }
         $code = mt_rand(100000, 999999);
 

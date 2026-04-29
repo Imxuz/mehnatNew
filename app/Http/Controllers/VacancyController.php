@@ -140,7 +140,7 @@ class VacancyController extends Controller
         if (!$admin->hasPermission('publication-vacancy-change')) {
             abort(403, 'Sizda bu amalni bajarish huquqi yo‘q');
         }
-        if (isset($vacancy->publication)){
+        if (isset($vacancy->publication)&& !$admin->hasPermission('vacancy-publication')){
             abort(403, "Bu vakansiya e'lon qilingan. Shu sababli o'zgartira olmaysiz.");
         }
         DB::beginTransaction();

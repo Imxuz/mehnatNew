@@ -16,6 +16,7 @@ use \App\Http\Controllers\SpecialOccupationController;
 use \App\Http\Controllers\PasswordResetController;
 use \App\Http\Controllers\AiController;
 use \App\Http\Controllers\UserTelegramController;
+use \App\Http\Controllers\CaptchaController;
 
 
 
@@ -43,6 +44,7 @@ Route::post('/vacancy-count', [VacancyController::class, 'viewCount'])->middlewa
 Route::get('vacancy', [UserVacancyController::class,"index"]);
 Route::get('vacancy/archive', [UserVacancyController::class,"archive"]);
 Route::resource('faqs', FaqsController::class);
+Route::get('/get-captcha', [CaptchaController::class, 'getCaptcha'])->middleware('throttle:10,1');
 
 
 

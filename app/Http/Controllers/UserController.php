@@ -38,7 +38,8 @@ class UserController extends Controller
                 'u.id as doc_id',
                 'u.check',
                 'u.path',
-                'u.adder_demands_id'
+                'u.adder_demands_id',
+                'u.updated_at as updated_doc'
             )
             ->orderBy('dir_demands.sort_number', 'asc')
             ->get();
@@ -227,7 +228,11 @@ class UserController extends Controller
 
         ])->whereNotNull('name')->whereHas('docUser');
         if (!empty($search)) {
-            $query->where('name', 'LIKE', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('id', 'LIKE', "%{$search}%")
+                    ->orWhere('phone', 'LIKE', "%{$search}%");
+            });
         }
         $tableUser = $query->paginate($perPage);
         return response()->json($tableUser);

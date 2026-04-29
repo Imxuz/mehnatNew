@@ -41,6 +41,8 @@ class StoreUserAuthRequest extends FormRequest
                     ->symbols()
 //                    ->uncompromised()
             ],
+            'captcha_value' => 'required|captcha_api:' . $this->captcha_key . ',default',
+
         ];
     }
     protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
