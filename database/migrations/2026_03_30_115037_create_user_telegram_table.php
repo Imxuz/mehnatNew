@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('user_telegram', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->nullable()->constrained();
+            $table->bigInteger('telegram_id')->unique();
+            $table->timestamp('verified_at')->nullable();
+            $table->tinyInteger('attempt')->default(0);
+            $table->timestamp('attempt_time')->nullable();
+            $table->string('sms_code', 10)->nullable();
+            $table->timestamp('expired_at')->nullable();
             $table->timestamps();
         });
     }

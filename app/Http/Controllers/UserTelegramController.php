@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Models\UserTelegram;
 use App\Models\Vacancy;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class UserTelegramController extends Controller
 {
@@ -94,12 +96,23 @@ class UserTelegramController extends Controller
                 'message' => "Maxfiy kod xato. Iltimos, qaytadan urinib ko'ring."
             ]);
         }
+        DB::beginTransaction();
 
-        $userTelegram->update([
-            'telegram_id' => $telegramId,
-            'sms_code' => null,
-            'expired_at'=>null
-        ]);
+        try {
+            UserTelegram::where('telegram_id', $request->input('telegram_id'))->whereNull('user_id')->delete();
+            $userTelegram->update([
+                'telegram_id' => $telegramId,
+                'verified_at' => now(),
+                'sms_code'    => null,
+                'expired_at'  => null
+            ]);
+            DB::commit();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Telegram foydalanuvchini yangilashda xatolik: " . $e->getMessage());
+            return response()->json(['error' => 'Xatolik yuz berdi'], 500);
+        }
 
         return response()->json([
             'status' => 'success',
@@ -117,7 +130,7 @@ class UserTelegramController extends Controller
             ], 404);
         }
         $user->update([
-            'telegram_id' => null
+            'verified_at' => null
         ]);
         return response()->json([
             'status' => 'success',
@@ -129,12 +142,30 @@ class UserTelegramController extends Controller
     {
         $telegramId = $request->input('telegram_id');
         $exists = UserTelegram::where('telegram_id', $telegramId)
-            ->whereNotNull('telegram_id')
+            ->whereNotNull('verified_at')
             ->exists();
 
         return response()->json([
             'is_logged_in' => $exists
         ]);
+    }
+    public function startUser(Request $request)
+    {
+        $telegramId = $request->input('telegram_id');
+        $exists = UserTelegram::where('telegram_id', $telegramId)->exists();
+        if (!$exists) {
+            UserTelegram::create([
+                'telegram_id' => $telegramId
+            ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'User created'
+            ], 201);
+        }
+        return response()->json([
+            'success' => false,
+            'message' => 'User already exists'
+        ], 200);
     }
 
     public function myVacancies(Request $request){

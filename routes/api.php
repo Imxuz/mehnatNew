@@ -81,6 +81,8 @@ Route::prefix('admin')->middleware('auth.admin.jwt')->group(function () {
 
 
 Route::prefix('telegram')->middleware('verify.telegram.signature')->group(function (){
+    Route::post('start/telegram_id',[UserTelegramController::class,'startUser']);
+    Route::post('telegram/vacancy',[UserTelegramController::class,'activeVacancy']);
     Route::post('data/check',[UserTelegramController::class,'checkUser']);
     Route::post('exit',[UserTelegramController::class,'exitUser']);
     Route::post('check-auth', [UserTelegramController::class, 'checkAuth']);

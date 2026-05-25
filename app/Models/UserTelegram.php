@@ -14,6 +14,7 @@ class UserTelegram extends Model
         'sms_code',
         'attempt',
         'telegram_id',
+        'verified_at',
         'expired_at'
     ];
 

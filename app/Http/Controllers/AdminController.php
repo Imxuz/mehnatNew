@@ -9,11 +9,11 @@ use App\Models\DocUser;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\TimeImport;
 use App\Exports\TimeExport;
-
 class AdminController extends Controller
 {
     /**
@@ -57,37 +57,74 @@ class AdminController extends Controller
         //
     }
 
+
+
     public function login(Request $request)
     {
+        // 1. Birinchi navbatda faqat Email va Parol formatini tekshiramiz
         $validator = Validator::make($request->all(), [
-            "email" => ["required", "string", "max:100", "email"],
-            "password" => ["required", "string", "max:100"],
+            'email' => ['required', 'string', 'email', 'max:100'],
+            'password' => ['required', 'string', 'max:100'],
         ]);
 
         if ($validator->fails()) {
-
             return response()->json([
                 'success' => false,
+                'message' => 'Kiritilgan ma\'lumotlarda xatolik bor.',
                 'errors' => $validator->errors(),
             ], 422);
         }
-        $credentials = $request->only('email', 'password');
-        if (!$token = auth('apiAdmin')->attempt($credentials)) {
-            return response()->json(['message' => 'Email or password incorrect'], 401);
+
+        // IP va Email bo'yicha kesh kaliti
+        $cacheKey = 'login_captcha_' . $request->ip() . '_' . $request->email;
+        $needCaptcha = Cache::get($cacheKey, false);
+
+        // 2. Agar foydalanuvchi oldin xato qilgan bo'lsa (needCaptcha = true), kapchani alohida tekshiramiz
+        if ($needCaptcha) {
+            $captchaValidator = Validator::make($request->all(), [
+                'captcha_key' => ['required', 'string'],
+                'captcha_value' => ['required', 'captcha_api:' . $request->captcha_key . ',default']
+            ]);
+
+            // Agar kapcha kiritilmagan yoki xato kiritilgan bo'lsa
+            if ($captchaValidator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'need_captcha' => true,
+                    'message' => 'Kapcha xato yoki kiritilmagan.',
+                    'errors' => $captchaValidator->errors(),
+                ], 422);
+            }
         }
 
-        $user = auth('apiAdmin')->user();
-        if (!$user->email) {
-            return response()->json(['message' => 'User not verified'], 403);
+        // 3. Agar hamma narsa (shu jumladan kapcha ham) to'g'ri bo'lsa, tizimga kirishni tekshiramiz
+        $credentials = $request->only('email', 'password');
+
+        if (!$token = auth('apiAdmin')->attempt($credentials)) {
+            // Login yoki parol xato bo'lsa, keshga belgi qo'yamiz (keyingi safar kapcha so'raydi)
+            Cache::put($cacheKey, true, now()->addMinutes(10));
+
+            return response()->json([
+                'success' => false,
+                'need_captcha' => true,
+                'message' => 'Email yoki parol xato',
+            ], 401);
         }
+
+        // Muvaffaqiyatli kirilganda keshni mutlaqo o'chiramiz
+        Cache::forget($cacheKey);
+
         return $this->respondWithToken($token);
     }
+
     protected function respondWithToken($token)
     {
         return response()->json([
+            'success'      => true,
+            'need_captcha' => false,
             'access_token' => $token,
             'token_type'   => 'bearer',
-            'expires_in' => auth('apiAdmin')->factory()->getTTL() * 60,
+            'expires_in'   => auth('apiAdmin')->factory()->getTTL() * 60,
             'user'         => auth('apiAdmin')->user(),
         ]);
     }
