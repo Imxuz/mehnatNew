@@ -51,6 +51,7 @@ Route::get('/get-captcha', [CaptchaController::class, 'getCaptcha'])->middleware
 
 Route::middleware('auth.jwt')->group(function () {
     Route::resource('user', UserController::class);
+    Route::post('photo-user', [AuthUserController::class,'photoUser']);
     Route::resource('click', ClickController::class);
     Route::get('docs/{filepath}', [UserController::class,'show'])->where('filepath', '.*');
     Route::resource('userVacancy', UserVacancyController::class);

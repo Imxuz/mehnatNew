@@ -72,18 +72,36 @@ class UserController extends Controller
     {
         $user = auth('api')->user();
         $admin = auth('apiAdmin')->user();
-        $filepathUser = '';
-        if ($user && $user->id){
+        $filepath = str_replace(['../', '..\\'], '', $filepath);
+        $filepathUser = null;
+        if ($user && $user->id) {
             $doc = DocUser::where('user_id', $user->id)
                 ->where('path', $filepath)
-                ->firstOrFail();
-            $filepathUser=$doc->path;
-        }elseif ($admin &&$admin->id){
+                ->first();
+            if ($doc) {
+                $filepathUser = $doc->path;
+            } else {
+                $expectedPrefix = "uploads/user_" . $user->id . "/photo_user/";
+                if (str_starts_with($filepath, $expectedPrefix)) {
+                    $filepathUser = $filepath;
+                } else {
+                    abort(403, 'Bu faylni ko\'rishga sizda huquq yo\'q.');
+                }
+            }
+        } elseif ($admin && $admin->id) {
             $filepathUser = $filepath;
+        } else {
+            abort(401, 'Tizimga kirilmagan.');
+        }
+        if (!$filepathUser) {
+            abort(404, 'Fayl topilmadi.');
         }
 
-
         $file = storage_path('app/private/' . $filepathUser);
+
+        if (!file_exists($file)) {
+            abort(404, 'Fayl diskda mavjud emas.');
+        }
 
         return response()->file($file, [
             'Cache-Control' => 'no-cache, no-store, must-revalidate',

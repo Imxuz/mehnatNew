@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->integer('region_id')->nullable();
             $table->string("name")->nullable();
+            $table->string('photo_user')->nullable();
             $table->string("passport_series",2)->nullable();
             $table->string("passport_number",7)->nullable();
             $table->string("birthday",20)->nullable();

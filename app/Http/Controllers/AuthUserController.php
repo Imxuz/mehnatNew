@@ -9,9 +9,14 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use function PHPUnit\Framework\isNull;
 
 class AuthUserController extends Controller
 {
@@ -211,6 +216,59 @@ class AuthUserController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'error' => 'Yangilashda xatolik: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function photoUser(Request $request)
+    {
+        /** @var \App\Models\User $user */
+        $user = auth('api')->user();
+        if (!$user) {
+            return response()->json(['error' => 'Foydalanuvchi topilmadi'], 401);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'photo_user' => 'required|image|mimes:jpeg,png,jpg,webp|max:4096',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $file = $request->file('photo_user');
+
+            if ($user->user_photo && Storage::disk('private')->exists($user->user_photo)) {
+                Storage::disk('private')->delete($user->user_photo);
+            }
+
+            $filename = Str::uuid() . '.jpg';
+            $path = 'uploads/user_' . $user->id . '/photo_user/' . $filename;
+
+            $manager = new ImageManager(new Driver());
+            $image = $manager->read($file);
+//            $image->scale(width: 800);
+            $encodedImage = $image->toJpeg(100);
+
+            Storage::disk('private')->put($path, (string) $encodedImage);
+
+            $user->update([
+                'photo_user' => $path
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profil rasmi o\'ta xavfsiz tarzda JPG formatida yangilandi',
+                'user' => $user,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Xavfsiz yangilashda xatolik: ' . $e->getMessage()
             ], 500);
         }
     }
