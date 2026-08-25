@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DocUserHistory extends Model
 {
+    use SoftDeletes;
     protected $table = "doc_user_history";
     protected $fillable=[
         'click_id',

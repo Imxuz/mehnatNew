@@ -37,8 +37,8 @@ class User extends Authenticatable implements JWTSubject
         'passport_number',
         'birthday',
         'address',
-        'photo_user'
-
+        'photo_user',
+        'embedding_photo',
     ];
 
     /**

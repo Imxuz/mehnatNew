@@ -11,14 +11,18 @@ use App\Models\Demand;
 use App\Models\DirDemand;
 use App\Models\DocUser;
 use App\Models\DocUserHistory;
+use App\Models\User;
 use App\Models\Vacancy;
 use App\Services\DefaultAdminService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 
-class ClickController extends Controller
+class ClickController extends Controller implements HasMiddleware
 {
     protected string $hrUrl;
 
@@ -29,13 +33,20 @@ class ClickController extends Controller
     /**
      * Display a listing of the resource.
      */
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('throttle:1,120', only: ['destroy']),
+        ];
+    }
     public function index()
     {
         $userId = auth('api')->id();
         $clickVacancies = Click:: where('user_id', $userId)->pluck('vacancy_id');
         $userVacancies = Vacancy::with('demands.dir_demand','occupation','region','oClick')
             ->whereIn('id',$clickVacancies)
-            ->orderBy('created_at','desc')->get();
+            ->orderBy('open_at','desc')->get();
         return response()->json($userVacancies);
 
 
@@ -46,13 +57,22 @@ class ClickController extends Controller
      */
     public function store(StoreClickRequest $request)
     {
+        /** @var User|null $userInfo */
         $user = auth('api')->id();
+        $userInfo = auth('api')->user();
         if (!$user){
             return response()->json([
                 'status' => false,
                 'message' => 'Bunday foydalanuvchi mavjud emas.',
             ], 400);
         }
+        if (!$userInfo->photo_user){
+            return response()->json([
+                'status' => false,
+                'message' => 'Sizning shaxsiy rasmingiz mavjud emas. Profil orqali uni yuklash zarur.',
+            ], 400);
+        }
+
         $vacancy = Vacancy::where('id', $request->vacancy_id)
             ->where('open_at', '<=', Carbon::now())
             ->where('close_at', '>=', Carbon::now())
@@ -123,7 +143,8 @@ class ClickController extends Controller
 
 
         return response()->json([
-            'message' => 'Foydalanuvchida barcha kerakli hujjatlar mavjud.',
+            'status' => true,
+            'message' => 'Ariza muvaffaqiyatli yuborildi.',
         ]);
 
 
@@ -155,9 +176,84 @@ class ClickController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Click $click)
+    public function destroy(Request $request)
     {
-        //
+        $request->validate([
+            'vacancy_id' => 'required|integer',
+        ]);
+
+        $vacancyOpen = Vacancy::where('open_at', '<', now())
+            ->where(function ($query) {
+                $query->whereNull('close_at')
+                    ->orWhere('close_at', '>', now());
+            })
+            ->where('id', $request->vacancy_id)
+            ->first();
+
+        if (!$vacancyOpen) {
+            return response()->json([
+                'message' => 'Ushbu vakansiya faol holatda emas'
+            ], 400);
+        }
+
+        $click = Click::where('user_id', auth('api')->id())
+            ->where('vacancy_id', $request->vacancy_id)
+            ->first();
+        if ($click->sent) {
+            return response()->json([
+                'message' => 'Ushbu vakansiya arizangiz ko\'rib chiqilgan'
+            ], 400);
+        }
+        $deletedClick = Click::onlyTrashed()
+            ->where('user_id', auth('api')->id())
+            ->where('vacancy_id', $request->vacancy_id)
+            ->latest()
+            ->first();
+        if ($deletedClick) {
+            $softDeleted = DocUserHistory::onlyTrashed()
+                ->where('click_id', $deletedClick->id)
+                ->get();
+            foreach ($softDeleted as $softDelete) {
+                if (!$softDelete->path) {
+                    continue;
+                }
+                $hasDoc = DocUser::where('user_id', $softDelete->user_id)
+                    ->where('dir_demand_id', $softDelete->dir_demand_id)
+                    ->where('path', $softDelete->path)
+                    ->exists();
+                if (!$hasDoc) {
+                    Storage::disk('private')->delete($softDelete->path);
+                }
+            }
+        }
+
+        if ($click) {
+            $docUsers = DocUserHistory::where('click_id', $click->id)->get();
+
+            foreach ($docUsers as $docUser) {
+                if (!$docUser->path) {
+                    continue;
+                }
+
+                $hasDoc = DocUser::where('user_id', $docUser->user_id)
+                    ->where('dir_demand_id', $docUser->dir_demand_id)
+                    ->where('path', $docUser->path)
+                    ->exists();
+
+                if (!$hasDoc) {
+                    Storage::disk('private')->delete($docUser->path);
+                }
+            }
+
+            DocUserHistory::where('click_id', $click->id)->delete();
+
+            $click->delete();
+        }
+
+
+        return response()->json([
+            'message' => 'Click deleted successfully'
+        ]);
     }
 
     public function adminUserClicks(Request $request)
@@ -167,7 +263,7 @@ class ClickController extends Controller
         if ($vacancy_id){
             $userClickGet = Click::where('vacancy_id', $vacancy_id)
                 ->with([
-                    'user:id,name,pinfl,phone',
+                    'user:id,name,pinfl,phone,photo_user',
                     'doc_histories:id,click_id,user_id,path,dir_demand_id',
                     'doc_histories.demand:id,title',
                     'userDocs',

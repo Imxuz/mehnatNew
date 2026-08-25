@@ -21,6 +21,7 @@ return new class extends Migration
             $table->text('doc_info')->nullable();
             $table->text('description')->nullable();
             $table->string('ip_address');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

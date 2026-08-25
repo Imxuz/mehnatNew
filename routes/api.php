@@ -17,6 +17,7 @@ use \App\Http\Controllers\PasswordResetController;
 use \App\Http\Controllers\AiController;
 use \App\Http\Controllers\UserTelegramController;
 use \App\Http\Controllers\CaptchaController;
+use \App\Http\Controllers\CheckTestProcessController;
 
 
 
@@ -56,6 +57,7 @@ Route::middleware('auth.jwt')->group(function () {
     Route::get('docs/{filepath}', [UserController::class,'show'])->where('filepath', '.*');
     Route::resource('userVacancy', UserVacancyController::class);
     Route::post('click/vacancyInfo',[ UserVacancyController::class, 'userVacancy']);
+    Route::post('click/userDoc',[ UserVacancyController::class, 'clickVacancyUserDoc']);
     Route::post('/get-passport-data',[ UserController::class, 'getPassportData']);
     Route::post('/telegram/login',[UserTelegramController::class, 'genCodeTelegram']);
 });
@@ -78,6 +80,7 @@ Route::prefix('admin')->middleware('auth.admin.jwt')->group(function () {
     Route::get('docs/{filepath}', [UserController::class,'show'])->where('filepath', '.*');
     Route::get('users/infos', [UserController::class,'tableUsers']);
     Route::get('divisions', [RegionController::class, 'adminDivision']);
+    Route::resource('check/test/process',CheckTestProcessController::class);
 });
 
 

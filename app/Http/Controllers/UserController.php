@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreUserRequest;
 use App\Models\DirDemand;
 use App\Models\DocUser;
+use App\Models\DocUserHistory;
 use App\Models\User;
 use App\Http\Requests\UpdateUserRequest;
 use App\Services\UserService;
@@ -78,8 +79,19 @@ class UserController extends Controller
             $doc = DocUser::where('user_id', $user->id)
                 ->where('path', $filepath)
                 ->first();
+
+            // Arizaga biriktirilgan hujjatlar doc_user_history da saqlanadi va
+            // keyinchalik doc_users dagi joriy fayl almashtirilgan bo'lishi mumkin.
+            $docHistory = $doc
+                ? null
+                : DocUserHistory::where('user_id', $user->id)
+                    ->where('path', $filepath)
+                    ->first();
+
             if ($doc) {
                 $filepathUser = $doc->path;
+            } elseif ($docHistory) {
+                $filepathUser = $docHistory->path;
             } else {
                 $expectedPrefix = "uploads/user_" . $user->id . "/photo_user/";
                 if (str_starts_with($filepath, $expectedPrefix)) {

@@ -17,7 +17,7 @@ class UserVacancyController extends Controller
      * Display a listing of the resource.
      */
     public function index(){
-        $vacancies = Vacancy::with('demands.dir_demand','occupation','region','oClick')->orderBy('created_at','desc')
+        $vacancies = Vacancy::with('demands.dir_demand','occupation','region','oClick')->orderBy('open_at','desc')
             ->where('publication','!=', null)->where('close_at',">",now())->get();
         return response()->json($vacancies);
     }
@@ -82,6 +82,27 @@ class UserVacancyController extends Controller
         $vacancies = Vacancy::with('demands.dir_demand','occupation','region','oClick')->orderBy('created_at','desc')
             ->where('publication','!=', null)->where('close_at',"<=",now())->get();
         return response()->json($vacancies);
+    }
+
+    public function clickVacancyUserDoc(Request $request)
+    {
+        $request->validate([
+            'vacancy_id' => 'required|integer',
+        ]);
+        $user = auth('api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+        $clickUserDoc = Click::join('doc_user_history as d', 'd.click_id', '=', 'clicks.id')
+            ->join('dir_demands as di', 'di.id', '=', 'd.dir_demand_id')
+            ->select('d.path', 'di.title')
+            ->where('clicks.user_id', $user->id)
+            ->where('clicks.vacancy_id', $request->vacancy_id)
+            ->whereNull('d.deleted_at')
+            ->whereNotNull('d.path')
+            ->get();
+
+        return response()->json($clickUserDoc);
     }
 
 

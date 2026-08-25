@@ -229,7 +229,8 @@ class AuthUserController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'photo_user' => 'required|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'photo_user'      => 'required|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'embedding_photo' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -242,8 +243,8 @@ class AuthUserController extends Controller
         try {
             $file = $request->file('photo_user');
 
-            if ($user->user_photo && Storage::disk('private')->exists($user->user_photo)) {
-                Storage::disk('private')->delete($user->user_photo);
+            if ($user->photo_user && Storage::disk('private')->exists($user->photo_user)) {
+                Storage::disk('private')->delete($user->photo_user);
             }
 
             $filename = Str::uuid() . '.jpg';
@@ -251,19 +252,19 @@ class AuthUserController extends Controller
 
             $manager = new ImageManager(new Driver());
             $image = $manager->read($file);
-//            $image->scale(width: 800);
             $encodedImage = $image->toJpeg(100);
 
             Storage::disk('private')->put($path, (string) $encodedImage);
 
             $user->update([
-                'photo_user' => $path
+                'photo_user'      => $path,
+                'embedding_photo' => $request->input('embedding_photo')
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Profil rasmi o\'ta xavfsiz tarzda JPG formatida yangilandi',
-                'user' => $user,
+                'message' => 'Profil rasmi va yuz vektori muvaffaqiyatli yangilandi',
+                'user'    => $user,
             ]);
 
         } catch (\Exception $e) {
