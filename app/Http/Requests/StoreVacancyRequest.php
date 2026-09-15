@@ -58,13 +58,45 @@ class StoreVacancyRequest extends FormRequest
                     );
                 }
             }
+
+            // Asosiy talablar ballari yig'indisi aynan 5 ball bo'lishi shart
+            $mainScoreSum = 0;
+            foreach ($demands as $demand) {
+                $type = $demand['demand_type'] ?? 'main';
+                if ($type === 'main' && (!empty($demand['dir_demand_id']) || !empty($demand['score']))) {
+                    $mainScoreSum += (float) ($demand['score'] ?? 0);
+                }
+            }
+
+            if ($mainScoreSum != 5) {
+                $validator->errors()->add(
+                    "demands",
+                    "Asosiy talablar bo‘yicha umumiy ball aynan 5 ball bo‘lishi shart (hozirgi yig‘indi: {$mainScoreSum} ball)."
+                );
+            }
+
+            // Qo'shimcha talablar ballari yig'indisi 5 balldan oshmasligi kerak (ixtiyoriy, lekin 5 dan oshmasligi shart)
+            $additionalScoreSum = 0;
+            foreach ($demands as $demand) {
+                $type = $demand['demand_type'] ?? 'main';
+                if ($type === 'additional' && (!empty($demand['dir_demand_id']) || !empty($demand['score']))) {
+                    $additionalScoreSum += (float) ($demand['score'] ?? 0);
+                }
+            }
+
+            if ($additionalScoreSum > 5) {
+                $validator->errors()->add(
+                    "demands",
+                    "Qo‘shimcha talablar bo‘yicha umumiy ball 5 balldan oshmasligi kerak (hozirgi yig‘indi: {$additionalScoreSum} ball)."
+                );
+            }
         });
     }
     protected function failedValidation(\Illuminate\Contracts\Validation\Validator $validator)
     {
         throw new \Illuminate\Http\Exceptions\HttpResponseException(
             response()->json([
-                'message' => 'Validation failed',
+                'message' => $validator->errors()->first() ?: 'Validation failed',
                 'errors' => $validator->errors()
             ], 422)
         );

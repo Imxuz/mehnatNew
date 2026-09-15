@@ -73,6 +73,7 @@ Route::prefix('admin')->middleware('auth.admin.jwt')->group(function () {
     Route::post('check', [AdminController::class,'checkDoc']);
     Route::get('search/occupation', [OccupationController::class,'searchOccupation']);
     Route::get('user/clicks', [ClickController::class,'adminUserClicks']);
+    Route::post('user/clicks/manual', [ClickController::class, 'storeManualClick'])->middleware('admin.permission:manual-click-create');
     Route::post('response/click', [ClickController::class,'responseClick']);
     Route::get('user/clicks/export', [ClickController::class,'exportUsers']);
     Route::post('publication', [VacancyController::class,'publication'])->middleware('admin.permission:vacancy-publication');

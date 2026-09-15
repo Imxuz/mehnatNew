@@ -246,8 +246,20 @@ class UserController extends Controller
 
     public function tableUsers(Request $request)
     {
-        $perPage = $request->get('perPage', 100);
-        $search  = $request->get('searchName');
+        $perPage = min((int)$request->get('perPage', 10), 50);
+        $search  = trim((string)$request->get('searchName', ''));
+
+        // Agar qidiruv amalga oshirilayotgan bo'lsa va 3 tadan kam belgi bo'lsa,
+        // 40,000 foydalanuvchini birdan yuklamaslik uchun cheklov
+        if ($request->has('searchName') && $search !== '' && mb_strlen($search) < 3) {
+            return response()->json([
+                'current_page' => 1,
+                'data' => [],
+                'total' => 0,
+                'per_page' => $perPage,
+                'message' => 'Qidirish uchun kamida 3 ta belgi kiriting',
+            ]);
+        }
 
         $query = User::with([
             'region:id,title',
@@ -255,12 +267,13 @@ class UserController extends Controller
             'docUser.demand:id,title',
             'docUser.adderDemand:id,adder_text',
             'vacanciesUser.clickVacancy.occupation:id,occupation',
-
         ])->whereNotNull('name')->whereHas('docUser');
+
         if (!empty($search)) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'LIKE', "%{$search}%")
-                    ->orWhere('id', 'LIKE', "%{$search}%")
+                    ->orWhere('id', $search)
+                    ->orWhere('pinfl', 'LIKE', "%{$search}%")
                     ->orWhere('phone', 'LIKE', "%{$search}%");
             });
         }

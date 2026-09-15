@@ -78,9 +78,10 @@ class UserVacancyController extends Controller
         ]);
     }
 
-    public function archive(){
+    public function archive(Request $request){
+        $perPage = $request->get('per_page', 5);
         $vacancies = Vacancy::with('demands.dir_demand','occupation','region','oClick')->orderBy('created_at','desc')
-            ->where('publication','!=', null)->where('close_at',"<=",now())->get();
+            ->where('publication','!=', null)->where('close_at',"<=",now())->paginate($perPage);
         return response()->json($vacancies);
     }
 

@@ -124,11 +124,16 @@ class VacancyController extends Controller
         if (!is_numeric($id) || intval($id) != $id) {
             return response()->json(['error' => 'Invalid ID'], 400);
         }
-        $vacancies = Vacancy::where('id', $id)
-            ->with('demands.dir_demand')
-            ->get();
+        $vacancy = Vacancy::where('id', $id)
+            ->with('demands.dir_demand', 'occupation', 'divRegion', 'admin')
+            ->withCount('clicks')
+            ->first();
 
-        return response()->json($vacancies);
+        if (!$vacancy) {
+            return response()->json(['error' => 'Vacancy not found'], 404);
+        }
+
+        return response()->json($vacancy);
     }
 
     /**

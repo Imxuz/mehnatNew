@@ -18,6 +18,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
@@ -260,6 +261,7 @@ class ClickController extends Controller implements HasMiddleware
     {
         $admin = auth('apiAdmin')->user();
         $vacancy_id = $request->vacancy_id;
+        $userClickGet = [];
         if ($vacancy_id){
             $userClickGet = Click::where('vacancy_id', $vacancy_id)
                 ->with([
@@ -267,13 +269,155 @@ class ClickController extends Controller implements HasMiddleware
                     'doc_histories:id,click_id,user_id,path,dir_demand_id',
                     'doc_histories.demand:id,title',
                     'userDocs',
+                    'createdByAdmin:id,name,surname,middle_name,job_title',
                 ])
+                ->orderBy('created_at', 'desc')
                 ->get();
 
         }
         return response()->json($userClickGet);
+    }
 
+    /**
+     * Rasmiy asos hujjati bilan admin tomonidan nomzod nomidan ariza kiritish
+     */
+    public function storeManualClick(Request $request)
+    {
+        $admin = auth('apiAdmin')->user();
+        if (!$admin) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Admin autentifikatsiyadan o‘tmagan.'
+            ], 401);
+        }
 
+        $validator = Validator::make($request->all(), [
+            'vacancy_id' => 'required|integer|exists:vacancies,id',
+            'user_id' => 'required|integer|exists:users,id',
+            'basis_file' => 'required|file|mimes:pdf,jpg,jpeg,png,doc,docx|max:10240',
+            'basis_comment' => 'required|string|max:1000',
+        ], [
+            'vacancy_id.required' => 'Vakansiya tanlanishi shart.',
+            'vacancy_id.exists' => 'Bunday vakansiya topilmadi.',
+            'user_id.required' => 'Nomzod tanlanishi shart.',
+            'user_id.exists' => 'Bunday nomzod tizimda mavjud emas.',
+            'basis_file.required' => 'Asos hujjati yuklanishi shart.',
+            'basis_file.mimes' => 'Fayl formati PDF, JPG, PNG yoki DOC/DOCX bo‘lishi kerak.',
+            'basis_file.max' => 'Fayl hajmi 10MB dan oshmasligi kerak.',
+            'basis_comment.required' => 'Asos izohi (xat/buyruq raqami va sanasi) kiritilishi shart.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Maʼlumotlar to‘liq yoki to‘g‘ri kiritilmadi.',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $vacancy = Vacancy::find($request->vacancy_id);
+        if (!$vacancy) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Vakansiya topilmadi.',
+            ], 404);
+        }
+
+        $user = User::find($request->user_id);
+        if (!$user) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Nomzod topilmadi.',
+            ], 404);
+        }
+
+        // Tekshirish: nomzod allaqachon ushbu vakansiyaga ariza topshirganmi?
+        $existingClick = Click::where('user_id', $user->id)
+            ->where('vacancy_id', $vacancy->id)
+            ->first();
+
+        if ($existingClick) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Ushbu nomzod mazkur vakansiyaga oldin ariza topshirgan.',
+            ], 400);
+        }
+
+        // Faylni private storage ga yuklash
+        $file = $request->file('basis_file');
+        $filename = 'basis_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('uploads/basis_files', $filename, 'private');
+
+        // Ariza (Click) va loglarni tranzaksiya ichida yaratish
+        $click = DB::transaction(function () use ($request, $user, $vacancy, $admin, $path) {
+            $click = Click::create([
+                'user_id' => $user->id,
+                'vacancy_id' => $vacancy->id,
+                'is_manual' => true,
+                'created_by_admin_id' => $admin->id,
+                'basis_file' => $path,
+                'basis_comment' => $request->basis_comment,
+            ]);
+
+            // Nomzodning mavjud tekshirilgan hujjatlari bo'lsa, ularni ham nusxalash
+            $demands = Demand::where('vacancy_id', $vacancy->id)->pluck('dir_demand_id');
+            $docUsers = DocUser::where('user_id', $user->id)
+                ->where('check', 1)
+                ->whereIn('dir_demand_id', $demands)
+                ->get();
+
+            if ($docUsers->isNotEmpty()) {
+                DocUser::where('user_id', $user->id)
+                    ->where('check', 1)
+                    ->whereIn('dir_demand_id', $demands)
+                    ->update([
+                        'vacancy_doc_id' => $vacancy->id,
+                    ]);
+
+                foreach ($docUsers as $docUser) {
+                    DocUserHistory::create([
+                        'click_id' => $click->id,
+                        'user_id' => $docUser->user_id,
+                        'dir_demand_id' => $docUser->dir_demand_id,
+                        'path' => $docUser->path,
+                        'adder_demands_id' => $docUser->adder_demands_id,
+                        'doc_info' => $docUser->doc_info,
+                        'description' => $docUser->description,
+                        'ip_address' => $request->ip() ?: $docUser->ip_address,
+                    ]);
+                }
+            }
+
+            // Audit jurnali (ClickLog) - old_values bo'sh JSON bo'lishi shart (NOT NULL)
+            ClickLog::create([
+                'admin_id' => $admin->id,
+                'model' => Click::class,
+                'action' => 'manual_click_create',
+                'old_values' => json_encode([]),
+                'new_values' => json_encode($click, JSON_UNESCAPED_UNICODE),
+            ]);
+
+            return $click;
+        });
+
+        // Agar HR_MEHNAT_API sozlangan bo'lsa, Java backendga xabar berish
+        if (!empty($this->hrUrl)) {
+            $url = $this->hrUrl . '/vacancy/oclick-save/' . $click->id;
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_TIMEOUT_MS, 300);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            curl_setopt($ch, CURLOPT_NOBODY, true);
+            curl_exec($ch);
+            curl_close($ch);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Nomzod asos hujjati bilan vakansiyaga muvaffaqiyatli qo‘shildi.',
+            'data' => $click->load(['user:id,name,pinfl,phone,photo_user', 'createdByAdmin:id,name,surname']),
+        ], 201);
     }
 
     public function exportUsers(Request $request)

@@ -11,10 +11,18 @@ class Click extends Model
     protected $fillable = [
         'user_id',
         'vacancy_id',
+        'is_manual',
+        'created_by_admin_id',
+        'basis_file',
+        'basis_comment',
         'admin_id',
         'sent_id',
         'comment',
         'sent',
+    ];
+
+    protected $casts = [
+        'is_manual' => 'boolean',
     ];
 
 
@@ -22,6 +30,12 @@ class Click extends Model
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
+
+    public function createdByAdmin()
+    {
+        return $this->belongsTo(Admin::class, 'created_by_admin_id', 'id');
+    }
+
     public function doc_histories(){
         return $this->hasMany(DocUserHistory::class, 'click_id', 'id');
     }
