@@ -11,18 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('exam_users', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained();
-            $table->foreignId('vacancy_id')->constrained();
-            $table->string('random_code',10);
-            $table->boolean('access')->default(false);
-            $table->timestamp('enter_time')->nullable();
-            $table->string('exam_score',10)->nullable();
-            $table->string('exam_result')->default('pending');
-            $table->timestamps();
-            $table->unique(['vacancy_id', 'user_id']);
-        });
+        if (!Schema::hasTable('exam_users')) {
+            Schema::create('exam_users', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained();
+                $table->foreignId('vacancy_id')->constrained();
+                $table->string('random_code',10);
+                $table->boolean('access')->default(false);
+                $table->timestamp('enter_time')->nullable();
+                $table->string('exam_score',10)->nullable();
+                $table->string('exam_result')->default('pending');
+                $table->timestamps();
+                $table->unique(['vacancy_id', 'user_id']);
+            });
+        }
     }
 
     /**

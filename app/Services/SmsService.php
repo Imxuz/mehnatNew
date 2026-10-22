@@ -9,30 +9,35 @@ class SmsService
 {
     public static function sendVerificationCode(string $phone, int $code): bool
     {
-        $phone = Str::of($phone)->remove(['+', '-', ' '])->prepend('+');
+        $cleanPhone = Str::of($phone)->remove(['+', '-', ' '])->toString();
+        $formattedPhone = '+' . $cleanPhone;
 
+        $message = "НГМК Код верификации: $code";
 
-        $message =  "НГМК Код верификации: $code";
         try {
-            $response = Http::withoutVerifying([
-                'verify' => false,
-                'curl' => [
-                    CURLOPT_SSL_VERIFYPEER => false,
-                    CURLOPT_SSL_VERIFYHOST => false,
-                ],
-            ])
+            $response = Http::withoutVerifying()
+                ->withOptions([
+                    'verify' => false,
+                    'curl' => [
+                        CURLOPT_SSL_VERIFYPEER => false,
+                        CURLOPT_SSL_VERIFYHOST => false,
+                    ],
+                ])
+                ->asForm()
                 ->timeout(5)
                 ->connectTimeout(3)
-                ->get('https://172.16.0.195:13013/cgi-bin/sendsms', [
-                    'smsc'     => 'smsc18',
+                ->post('https://172.16.0.195:7443/sendsms.php', [
                     'username' => 'orisp',
                     'password' => 'oror1414*',
-                    'from'     => 'mehnatUz',
-                    'to'       => $phone,
-                    'text'     => $message,
-                    'coding'   => '2',
-                    'charset'=>'utf-8',
+                    'to' => $formattedPhone,
+                    'text' => $message,
+                    'from' => 'mehnatUz',
+                    'smsc' => 'smsc18',
+                    'coding' => '2',
+                    'charset' => 'utf-8',
                     'dlr-mask' => '3',
+
+
                 ]);
 
             if ($response->successful()) {

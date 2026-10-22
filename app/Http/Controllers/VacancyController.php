@@ -11,6 +11,7 @@ use App\Models\Vacancy;
 use App\Http\Requests\StoreVacancyRequest;
 use App\Http\Requests\UpdateVacancyRequest;
 use App\Models\VacancyLog;
+use App\Models\VacancySpecialDemand;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
@@ -24,14 +25,14 @@ class VacancyController extends Controller
     {
         $admin = auth('apiAdmin')->user();
         $regionAdmin = Region::find($admin->region_id);
-        $query = Vacancy::with('demands.dir_demand', 'occupation', 'divRegion','admin')->withCount('clicks')
+        $query = Vacancy::with('demands.dir_demand', 'occupation', 'divRegion', 'admin', 'specialDemands.dir_demand')->withCount('clicks')
             ->orderBy('created_at', 'desc');
         if ($admin->hasPermission('sub-region-vacancy')) {
             $query->where('region_id', $admin->region_id);
 
         } elseif ($admin->hasPermission('region-vacancy')) {
-            $query->whereHas('divRegion', function ($q) use ($regionAdmin,$admin) {
-                $q->where(function ($sub) use ($regionAdmin,$admin) {
+            $query->whereHas('divRegion', function ($q) use ($regionAdmin, $admin) {
+                $q->where(function ($sub) use ($regionAdmin, $admin) {
                     if (!empty($regionAdmin->div_region)) {
                         $sub->orWhere('div_region', $regionAdmin->div_region);
                     }
@@ -43,19 +44,20 @@ class VacancyController extends Controller
                         ->orWhere('div_region', $regionAdmin->id);
                 });
             });
-        }elseif(!($admin->hasPermission('all-vacancy-view'))) {
-            return response()->json(['error'=>"Sizda bunday huquq yo'q"],403);
+        } elseif (!($admin->hasPermission('all-vacancy-view'))) {
+            return response()->json(['error' => "Sizda bunday huquq yo'q"], 403);
         }
         $status = $request->status;
-        if ($status){
+        if ($status) {
             if ($status === 'active') {
-                $query->where('close_at', '>=', now()) ->whereNotNull('publication');
+                $query->where('close_at', '>=', now())->whereNotNull('publication');
             } elseif ($status === 'archive') {
                 $query->where('close_at', '<=', now())->whereNotNull('publication');
             } elseif ($status === 'published') {
-                $query->whereNotNull('publication'); }
-            elseif ($status === 'unpublished') {
-                $query->whereNull('publication');}
+                $query->whereNotNull('publication');
+            } elseif ($status === 'unpublished') {
+                $query->whereNull('publication');
+            }
         }
         $query->when($request->admin_id, function ($q, $adminId) {
             $q->where('admin_id', $adminId);
@@ -75,16 +77,16 @@ class VacancyController extends Controller
         DB::beginTransaction();
         try {
             $vacancy = Vacancy::create([
-                'region_id'      => $request->region_id,
-                'admin_id'       => $admin->id,
-                'occupation_id'  => $request->occupation_id,
-                'position'  => $request->position,
-                'helpline'  => $request->helpline,
+                'region_id' => $request->region_id,
+                'admin_id' => $admin->id,
+                'occupation_id' => $request->occupation_id,
+                'position' => $request->position,
+                'helpline' => $request->helpline,
                 'description' => json_encode([
                     'ru' => $request->description_ru,
                     'uz' => $request->description_uz,
                 ], JSON_UNESCAPED_UNICODE),
-                'specials'      =>  $request->specials,
+                'specials' => $request->specials,
             ]);
 
             $demands = $request->input('demands', []);
@@ -93,10 +95,21 @@ class VacancyController extends Controller
                 if (!empty($demand['dir_demand_id']) || !empty($demand['score']) || !empty($demand['adder_text'])) {
                     Demand::create([
                         'dir_demand_id' => $demand['dir_demand_id'] ?? null,
-                        'adder_text'    => $demand['adder_text'] ?? null,
-                        'vacancy_id'    => $vacancy->id,
-                        'score'         => $demand['score'] ?? null,
-                        'demand_type'         => $demand['demand_type'],
+                        'adder_text' => $demand['adder_text'] ?? null,
+                        'vacancy_id' => $vacancy->id,
+                        'score' => $demand['score'] ?? null,
+                        'demand_type' => $demand['demand_type'],
+                    ]);
+                }
+            }
+
+            $specialDemands = $request->input('special_demands', []);
+            foreach ($specialDemands as $item) {
+                if (!empty($item['dir_demand_id']) && !empty($item['text']) && trim($item['text']) !== '') {
+                    VacancySpecialDemand::create([
+                        'vacancy_id' => $vacancy->id,
+                        'dir_demand_id' => (int) $item['dir_demand_id'],
+                        'text' => trim($item['text']),
                     ]);
                 }
             }
@@ -125,7 +138,7 @@ class VacancyController extends Controller
             return response()->json(['error' => 'Invalid ID'], 400);
         }
         $vacancy = Vacancy::where('id', $id)
-            ->with('demands.dir_demand', 'occupation', 'divRegion', 'admin')
+            ->with('demands.dir_demand', 'occupation', 'divRegion', 'admin', 'specialDemands.dir_demand')
             ->withCount('clicks')
             ->first();
 
@@ -139,13 +152,13 @@ class VacancyController extends Controller
     /**
      * Update the specified resource in storage.
      */
-        public function update(UpdateVacancyRequest $request, Vacancy $vacancy)
+    public function update(UpdateVacancyRequest $request, Vacancy $vacancy)
     {
         $admin = auth('apiAdmin')->user();
         if (!$admin->hasPermission('publication-vacancy-change')) {
             abort(403, 'Sizda bu amalni bajarish huquqi yo‘q');
         }
-        if (isset($vacancy->publication)&& !$admin->hasPermission('vacancy-publication')){
+        if (isset($vacancy->publication) && !$admin->hasPermission('vacancy-publication')) {
             abort(403, "Bu vakansiya e'lon qilingan. Shu sababli o'zgartira olmaysiz.");
         }
         DB::beginTransaction();
@@ -154,12 +167,12 @@ class VacancyController extends Controller
             $oldDemands = Demand::where('vacancy_id', $vacancy->id)->get()->toArray();
 
             $vacancy->update([
-                'region_id'      => $request->region_id,
-//                'admin_id'       => $admin->id,
-                'occupation_id'  => $request->occupation_id,
-                'position'  => $request->position,
-                'helpline'  => $request->helpline,
-                'specials'      =>  $request->specials,
+                'region_id' => $request->region_id,
+                //                'admin_id'       => $admin->id,
+                'occupation_id' => $request->occupation_id,
+                'position' => $request->position,
+                'helpline' => $request->helpline,
+                'specials' => $request->specials,
                 'description' => json_encode([
                     'ru' => $request->description_ru,
                     'uz' => $request->description_uz,
@@ -173,18 +186,30 @@ class VacancyController extends Controller
                 if (!empty($demand['dir_demand_id']) || !empty($demand['score']) || !empty($demand['adder_text'])) {
                     $new = Demand::create([
                         'dir_demand_id' => $demand['dir_demand_id'] ?? null,
-                        'adder_text'    => $demand['adder_text'] ?? null,
-                        'vacancy_id'    => $vacancy->id,
-                        'score'         => $demand['score'] ?? null,
-                        'demand_type'   => $demand['demand_type'],
+                        'adder_text' => $demand['adder_text'] ?? null,
+                        'vacancy_id' => $vacancy->id,
+                        'score' => $demand['score'] ?? null,
+                        'demand_type' => $demand['demand_type'],
                     ]);
                     $newDemands[] = $new->toArray();
                 }
             }
+
+            VacancySpecialDemand::where('vacancy_id', $vacancy->id)->delete();
+            $specialDemands = $request->input('special_demands', []);
+            foreach ($specialDemands as $item) {
+                if (!empty($item['dir_demand_id']) && !empty($item['text']) && trim($item['text']) !== '') {
+                    VacancySpecialDemand::create([
+                        'vacancy_id' => $vacancy->id,
+                        'dir_demand_id' => (int) $item['dir_demand_id'],
+                        'text' => trim($item['text']),
+                    ]);
+                }
+            }
             VacancyLog::create([
-                'admin_id'  => $admin->id,
-                'model'     => Vacancy::class,
-                'action'    => 'update',
+                'admin_id' => $admin->id,
+                'model' => Vacancy::class,
+                'action' => 'update',
                 'old_values' => [
                     'vacancy' => $oldVacancy,
                     'demands' => $oldDemands,
@@ -223,15 +248,15 @@ class VacancyController extends Controller
         $oldVacancy = $vacancy->toArray();
         $oldDemands = $vacancy->demands()->get()->toArray();
         VacancyLog::create([
-            'admin_id'   => $admin->id,
-            'model'      => Vacancy::class,
-            'action'     => 'delete',
+            'admin_id' => $admin->id,
+            'model' => Vacancy::class,
+            'action' => 'delete',
             'old_values' => [
                 'vacancy' => $oldVacancy,
                 'demands' => $oldDemands,
             ],
             'new_values' => [
-                'admin_id'   => $admin->id,
+                'admin_id' => $admin->id,
             ],
         ]);
         $vacancy->delete();
@@ -257,33 +282,42 @@ class VacancyController extends Controller
         $oldDemands = $vacancy->demands()->get()->toArray();
         $vacancy->publication = $admin->id;
         $vacancy->open_at = now();
-        $vacancy->close_at = now()->addDay(10)->setTime(17, 0, 0);
+        $vacancy->close_at = now()->addMonth()->setTime(17, 0, 0);
         $vacancy->save();
         VacancyLog::create([
-            'admin_id'   => $admin->id,
-            'model'      => Vacancy::class,
-            'action'     => 'publish',
+            'admin_id' => $admin->id,
+            'model' => Vacancy::class,
+            'action' => 'publish',
             'old_values' => [
                 'vacancy' => $oldVacancy,
                 'demands' => $oldDemands,
             ],
             'new_values' => [
                 'publication' => $vacancy->publication,
-                'open_at'     => $vacancy->open_at,
-                'close_at'    => $vacancy->close_at,
-                'admin_id'   => $admin->id,
+                'open_at' => $vacancy->open_at,
+                'close_at' => $vacancy->close_at,
+                'admin_id' => $admin->id,
             ],
         ]);
-        $data = json_encode([
-            'vacancy_id' => $request->id,
-            'type' => 'new_vacancy'
-        ]);
-//        SendTelegramNewVacancy::dispatch($request->id)->onQueue('telegram_new_vacancy_queue');
-        Queue::connection('rabbitmq')->pushRaw($data, 'telegram_new_vacancy_queue');
+
+        // 1. Laravel navbati orqali Telegram foydalanuvchilariga xabarnoma jo'natish
+        SendTelegramNewVacancy::dispatch($vacancy->id);
+
+        // 2. RabbitMQ orqali Python bot uchun test navbatiga xom JSON xabar yuborish
+        try {
+            $rawQueue = env('RABBITMQ_RAW_QUEUE', 'telegram_new_vacancy_test_queue');
+            $rawPayload = json_encode([
+                'vacancy_id' => $vacancy->id,
+                'type' => 'new_vacancy'
+            ]);
+            Queue::connection('rabbitmq')->pushRaw($rawPayload, $rawQueue);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning("RabbitMQ push {$rawQueue} failed: " . $e->getMessage());
+        }
 
         return response()->json([
             'message' => 'Vakansiya muvaffaqiyatli chop etildi',
-            'data'    => $vacancy
+            'data' => $vacancy
         ]);
     }
 
@@ -301,7 +335,7 @@ class VacancyController extends Controller
             ], 200);
 
         } catch (\Exception $e) {
-//            return response()->json([
+            //            return response()->json([
 //                'success' => false,
 //                'message' => 'Xatolik yuz berdi'
 //            ], 500);

@@ -30,7 +30,10 @@ class UpdateVacancyRequest extends FormRequest
 //            "close_at"       => "required|date_format:Y-m-d H:i:s",
 //            "publication"    => "nullable|boolean",
             "demands"        => "required|array|min:1",
-            "specials"       => "array",
+            "specials"       => "nullable|array",
+            "special_demands" => "nullable|array",
+            "special_demands.*.dir_demand_id" => "required|integer",
+            "special_demands.*.text" => "required|string|max:2000",
             'demands.*.dir_demand_id' => 'required_with:demands.*.score,demands.*.adder_text|integer',
             'demands.*.score'         => 'required_with:demands.*.dir_demand_id,demands.*.adder_text|numeric',
             'demands.*.adder_text'    => 'required_with:demands.*.dir_demand_id,demands.*.score',
@@ -85,6 +88,35 @@ class UpdateVacancyRequest extends FormRequest
                     "demands",
                     "Qo‘shimcha talablar bo‘yicha umumiy ball 5 balldan oshmasligi kerak (hozirgi yig‘indi: {$additionalScoreSum} ball)."
                 );
+            }
+
+            // Xos talablarda yo'nalish tanlanganligi, matn kiritilganligi va takrorlanmasligi tekshiruvi
+            $specialDemands = $this->input('special_demands', []);
+            $selectedDirDemandIds = [];
+            foreach ($specialDemands as $idx => $sd) {
+                if (empty($sd['dir_demand_id'])) {
+                    $validator->errors()->add(
+                        "special_demands.$idx.dir_demand_id",
+                        "Talab yo‘nalishini tanlang."
+                    );
+                } else {
+                    $id = (int) $sd['dir_demand_id'];
+                    if (in_array($id, $selectedDirDemandIds, true)) {
+                        $validator->errors()->add(
+                            "special_demands.$idx.dir_demand_id",
+                            "Ushbu talab yo‘nalishi xos talablarda avval tanlangan. Har bir yo‘nalish faqat bir marta tanlanishi mumkin."
+                        );
+                    } else {
+                        $selectedDirDemandIds[] = $id;
+                    }
+                }
+
+                if (empty($sd['text']) || trim($sd['text']) === '') {
+                    $validator->errors()->add(
+                        "special_demands.$idx.text",
+                        "Xos talab matnini kiriting."
+                    );
+                }
             }
         });
     }

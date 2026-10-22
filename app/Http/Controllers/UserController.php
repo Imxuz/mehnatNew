@@ -109,16 +109,19 @@ class UserController extends Controller
             abort(404, 'Fayl topilmadi.');
         }
 
+        $baseStorage = realpath(storage_path('app/private'));
         $file = storage_path('app/private/' . $filepathUser);
+        $realFile = realpath($file);
 
-        if (!file_exists($file)) {
-            abort(404, 'Fayl diskda mavjud emas.');
+        if (!$realFile || !$baseStorage || !str_starts_with($realFile, $baseStorage) || !file_exists($realFile)) {
+            abort(404, 'Fayl topilmadi.');
         }
 
-        return response()->file($file, [
+        return response()->file($realFile, [
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
             'Pragma' => 'no-cache',
             'Expires' => '0',
+            'X-Content-Type-Options' => 'nosniff',
         ]);
     }
 
@@ -189,7 +192,7 @@ class UserController extends Controller
 
         $response = Http::timeout(10)
             ->withHeaders([
-                'Authorization' => 'Basic TkVXU0lURTo5L05QQkxCXys1KyY='
+                'Authorization' => (string) (config('services.insonline.auth') ?: env('INSONLINE_BASIC_AUTH')),
             ])
             ->withOptions([
                 'proxy' => env('PROXY_URL'),

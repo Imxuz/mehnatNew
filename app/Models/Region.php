@@ -25,6 +25,11 @@ class Region extends Model
             ->select('id', 'title');
     }
 
+    public function parent_region()
+    {
+        return $this->parentRegion();
+    }
+
 
 
     public function divChildren()

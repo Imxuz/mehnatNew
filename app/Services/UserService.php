@@ -12,12 +12,13 @@ use Illuminate\Support\Str;
 
 class UserService
 {
-    protected string $hrUrl;
+    protected ?string $hrUrl = null;
 
     public function __construct()
     {
-        $this->hrUrl = env('HR_MEHNAT_API');
+        $this->hrUrl = (string) (config('services.hr_mehnat.api_url') ?: env('HR_MEHNAT_API', ''));
     }
+
 
     public function storeUserFiles($user, $request)
     {

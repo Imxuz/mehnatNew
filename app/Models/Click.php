@@ -50,4 +50,8 @@ class Click extends Model
             ->with('demand');
     }
 
+    public function logs()
+    {
+        return $this->hasMany(ClickLog::class, 'click_id', 'id')->orderBy('created_at', 'desc');
+    }
 }

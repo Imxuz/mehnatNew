@@ -14,6 +14,7 @@ use App\Models\DocUserHistory;
 use App\Models\User;
 use App\Models\Vacancy;
 use App\Services\DefaultAdminService;
+use App\Services\AiAnalysisService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
@@ -25,12 +26,13 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ClickController extends Controller implements HasMiddleware
 {
-    protected string $hrUrl;
+    protected ?string $hrUrl = null;
 
     public function __construct(private DefaultAdminService $defaultAdminService)
     {
-        $this->hrUrl = env('HR_MEHNAT_API');
+        $this->hrUrl = (string) (config('services.hr_mehnat.api_url') ?: env('HR_MEHNAT_API', ''));
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -38,16 +40,16 @@ class ClickController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('throttle:1,120', only: ['destroy']),
+            new Middleware('throttle:click_destroy', only: ['destroy']),
         ];
     }
     public function index()
     {
         $userId = auth('api')->id();
-        $clickVacancies = Click:: where('user_id', $userId)->pluck('vacancy_id');
-        $userVacancies = Vacancy::with('demands.dir_demand','occupation','region','oClick')
-            ->whereIn('id',$clickVacancies)
-            ->orderBy('open_at','desc')->get();
+        $clickVacancies = Click::where('user_id', $userId)->pluck('vacancy_id');
+        $userVacancies = Vacancy::with('demands.dir_demand', 'occupation', 'region', 'oClick')
+            ->whereIn('id', $clickVacancies)
+            ->orderBy('open_at', 'desc')->get();
         return response()->json($userVacancies);
 
 
@@ -61,13 +63,13 @@ class ClickController extends Controller implements HasMiddleware
         /** @var User|null $userInfo */
         $user = auth('api')->id();
         $userInfo = auth('api')->user();
-        if (!$user){
+        if (!$user) {
             return response()->json([
                 'status' => false,
                 'message' => 'Bunday foydalanuvchi mavjud emas.',
             ], 400);
         }
-        if (!$userInfo->photo_user){
+        if (!$userInfo->photo_user) {
             return response()->json([
                 'status' => false,
                 'message' => 'Sizning shaxsiy rasmingiz mavjud emas. Profil orqali uni yuklash zarur.',
@@ -84,7 +86,7 @@ class ClickController extends Controller implements HasMiddleware
                 'message' => 'Bu vakansiya hozir faol emas yoki muddati tugagan.',
             ], 400);
         }
-        $ClickCheck = Click::where('user_id', $user)->where('vacancy_id',$vacancy->id)->first();
+        $ClickCheck = Click::where('user_id', $user)->where('vacancy_id', $vacancy->id)->first();
         if ($ClickCheck) {
             return response()->json([
                 'status' => false,
@@ -92,8 +94,8 @@ class ClickController extends Controller implements HasMiddleware
             ], 400);
         }
 
-        $demands = Demand::where('vacancy_id',$vacancy->id)->pluck('dir_demand_id');
-        $docUser = DocUser::where('user_id',$user)->where('check', 1)->pluck('dir_demand_id');
+        $demands = Demand::where('vacancy_id', $vacancy->id)->pluck('dir_demand_id');
+        $docUser = DocUser::where('user_id', $user)->where('check', 1)->pluck('dir_demand_id');
         $missingDemands = $demands->diff($docUser);
         if ($missingDemands->isNotEmpty()) {
             $errors = DirDemand::whereIn('id', $missingDemands)
@@ -102,11 +104,11 @@ class ClickController extends Controller implements HasMiddleware
                 'status' => false,
                 'message' => 'Quyidagi hujjatlar tasdiqlanmagan yoki mavjud emas',
                 'errors' => $errors,
-            ],422);
-        }else {
+            ], 422);
+        } else {
             $click_id = Click::create([
-                'user_id'=>$user,
-                'vacancy_id'=>$request->vacancy_id,
+                'user_id' => $user,
+                'vacancy_id' => $request->vacancy_id,
             ])->id;
 
             DocUser::where('user_id', $user)
@@ -119,20 +121,20 @@ class ClickController extends Controller implements HasMiddleware
             $docUsers = DocUser::where('user_id', $user)->where('check', 1)->whereIn('dir_demand_id', $demands)->get();
             foreach ($docUsers as $docUser) {
                 DocUserHistory::create([
-                    'click_id'    => $click_id,
+                    'click_id' => $click_id,
                     'user_id' => $docUser->user_id,
                     'dir_demand_id' => $docUser->dir_demand_id,
                     'path' => $docUser->path,
                     'adder_demands_id' => $docUser->adder_demands_id,
                     'doc_info' => $docUser->doc_info,
                     'description' => $docUser->description,
-                    'ip_address'=>$docUser->ip_address,
+                    'ip_address' => $docUser->ip_address,
                 ]);
             }
 
-            $url = $this->hrUrl.'/vacancy/oclick-save/'.$click_id;
+            $url = $this->hrUrl . '/vacancy/oclick-save/' . $click_id;
             $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_TIMEOUT_MS, 200);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 1);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
@@ -159,8 +161,8 @@ class ClickController extends Controller implements HasMiddleware
         if (!is_numeric($id) || intval($id) != $id) {
             return response()->json(['error' => 'Invalid ID'], 400);
         }
-        $vacancies = Vacancy::where('id', $id)->with('demands.dir_demand','occupation','region')->first();
-        if ($vacancies->close_at<now()&&$vacancies->publication==null){
+        $vacancies = Vacancy::where('id', $id)->with('demands.dir_demand', 'occupation', 'region')->first();
+        if ($vacancies->close_at < now() && $vacancies->publication == null) {
             return response()->json(['error' => 'Bunday vakansiya xozirda mavjud emas'], 404);
         }
         return response()->json($vacancies);
@@ -200,6 +202,13 @@ class ClickController extends Controller implements HasMiddleware
         $click = Click::where('user_id', auth('api')->id())
             ->where('vacancy_id', $request->vacancy_id)
             ->first();
+
+        if (!$click) {
+            return response()->json([
+                'message' => 'Ushbu vakansiyaga ariza topilmadi'
+            ], 404);
+        }
+
         if ($click->sent) {
             return response()->json([
                 'message' => 'Ushbu vakansiya arizangiz ko\'rib chiqilgan'
@@ -257,25 +266,117 @@ class ClickController extends Controller implements HasMiddleware
         ]);
     }
 
-    public function adminUserClicks(Request $request)
+    public function adminUserClicks(Request $request, AiAnalysisService $aiAnalysisService)
     {
         $admin = auth('apiAdmin')->user();
         $vacancy_id = $request->vacancy_id;
-        $userClickGet = [];
-        if ($vacancy_id){
-            $userClickGet = Click::where('vacancy_id', $vacancy_id)
-                ->with([
-                    'user:id,name,pinfl,phone,photo_user',
-                    'doc_histories:id,click_id,user_id,path,dir_demand_id',
-                    'doc_histories.demand:id,title',
-                    'userDocs',
-                    'createdByAdmin:id,name,surname,middle_name,job_title',
-                ])
-                ->orderBy('created_at', 'desc')
-                ->get();
 
+        if (!$vacancy_id) {
+            return response()->json([
+                'data' => [],
+                'current_page' => 1,
+                'last_page' => 1,
+                'total' => 0,
+                'per_page' => (int) $request->input('per_page', 50),
+            ]);
         }
-        return response()->json($userClickGet);
+
+        $perPage = (int) $request->input('per_page', 50);
+        if ($perPage <= 0 || $perPage > 200) {
+            $perPage = 50;
+        }
+
+        $query = Click::where('vacancy_id', $vacancy_id);
+
+        // Qidiruv filtrlari: Ism, telefon, ID
+        $name = trim((string) ($request->input('name') ?: $request->input('search')));
+        if (!empty($name)) {
+            $query->whereHas('user', function ($q) use ($name) {
+                $q->where('name', 'like', "%{$name}%");
+            });
+        }
+
+        $phone = trim((string) $request->input('phone'));
+        if (!empty($phone)) {
+            $query->whereHas('user', function ($q) use ($phone) {
+                $q->where('phone', 'like', "%{$phone}%");
+            });
+        }
+
+        $id = trim((string) $request->input('id'));
+        if (!empty($id)) {
+            $query->where(function ($q) use ($id) {
+                $q->where('id', $id)->orWhere('user_id', $id);
+            });
+        }
+
+        // Status filtri ('null' / 'accept' / 'cancel')
+        if ($request->has('sent') && $request->input('sent') !== '' && $request->input('sent') !== 'all') {
+            $sent = $request->input('sent');
+            if ($sent === 'null') {
+                $query->whereNull('sent');
+            } else {
+                $query->where('sent', $sent);
+            }
+        }
+
+        // AI Balli bo'yicha saralash yoki filtr
+        $sortByScore = $request->input('sortByScore');
+        if (in_array($sortByScore, ['desc', 'above_50'], true)) {
+            $sortedOclickIds = $aiAnalysisService->getSortedOclickIds($vacancy_id, $sortByScore);
+
+            if (!empty($sortedOclickIds)) {
+                $query->whereIn('id', $sortedOclickIds);
+                $idsString = implode(',', $sortedOclickIds);
+                $query->orderByRaw("FIELD(id, {$idsString})");
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        $query->with([
+            'user:id,name,pinfl,phone,photo_user',
+            'doc_histories:id,click_id,user_id,path,dir_demand_id,adder_demands_id',
+            'doc_histories.demand:id,title',
+            'userDocs',
+            'createdByAdmin:id,name,surname,middle_name,job_title',
+            'logs' => function ($q) {
+                $q->with('admin:id,name,surname,middle_name,job_title,email')
+                    ->orderBy('created_at', 'desc');
+            },
+        ]);
+
+        $paginated = $query->paginate($perPage);
+
+        // Faqat shu sahifadagi arizalar uchun AI tahlilni biriktirish
+        $aiAnalysisService->attachToClicks($paginated->items(), $vacancy_id);
+
+        // Har bir arizaga oxirgi javob vaqtini biriktirish
+        foreach ($paginated->items() as $click) {
+            $responseLogs = $click->logs->where('action', 'response_click');
+            $latestResponseLog = $responseLogs->first();
+
+            if ($latestResponseLog) {
+                $click->last_response_at = $latestResponseLog->created_at?->toISOString() ?? (string) $latestResponseLog->created_at;
+                $click->last_response_admin = $latestResponseLog->admin ? [
+                    'id' => $latestResponseLog->admin->id,
+                    'name' => $latestResponseLog->admin->name,
+                    'surname' => $latestResponseLog->admin->surname,
+                    'middle_name' => $latestResponseLog->admin->middle_name,
+                    'job_title' => $latestResponseLog->admin->job_title,
+                ] : null;
+            } elseif ($click->sent !== null) {
+                $click->last_response_at = $click->updated_at?->toISOString() ?? (string) $click->updated_at;
+                $click->last_response_admin = null;
+            } else {
+                $click->last_response_at = null;
+                $click->last_response_admin = null;
+            }
+        }
+
+        return response()->json($paginated);
     }
 
     /**
@@ -391,10 +492,11 @@ class ClickController extends Controller implements HasMiddleware
             // Audit jurnali (ClickLog) - old_values bo'sh JSON bo'lishi shart (NOT NULL)
             ClickLog::create([
                 'admin_id' => $admin->id,
+                'click_id' => $click->id,
                 'model' => Click::class,
                 'action' => 'manual_click_create',
-                'old_values' => json_encode([]),
-                'new_values' => json_encode($click, JSON_UNESCAPED_UNICODE),
+                'old_values' => [],
+                'new_values' => $click->toArray(),
             ]);
 
             return $click;
@@ -420,13 +522,14 @@ class ClickController extends Controller implements HasMiddleware
         ], 201);
     }
 
-    public function exportUsers(Request $request)
+    public function exportUsers(Request $request, AiAnalysisService $aiAnalysisService)
     {
         if (!$request->has('vacancy_id')) {
             return response()->json(['error' => 'Vacancy ID berilmadi'], 400);
         }
         try {
-            $export = new \App\Exports\UsersInfoExport($request->vacancy_id);
+            $filters = $request->only(['name', 'phone', 'id', 'sent', 'sortByScore', 'search']);
+            $export = new \App\Exports\UsersInfoExport((int) $request->vacancy_id, $filters, $aiAnalysisService);
             return \Maatwebsite\Excel\Facades\Excel::download(
                 $export,
                 'users.xlsx'
@@ -440,7 +543,7 @@ class ClickController extends Controller implements HasMiddleware
         }
     }
 
-    public function responseClick(Request $request)
+    public function responseClick(Request $request, AiAnalysisService $aiAnalysisService)
     {
         $this->defaultAdminService->errAllVacancyView();
 
@@ -457,21 +560,42 @@ class ClickController extends Controller implements HasMiddleware
         }
 
         $admin = auth('apiAdmin')->id();
-        $click = Click::findOrFail($request->id);
-        $oldValues = $click;
+        $click = Click::with(['doc_histories', 'userDocs', 'clickVacancy.demands'])->findOrFail($request->id);
+
+        // Agar arizani rad etish ('cancel') tanlangan bo'lsa va nomzod barcha asosiy talablarga (100%) to'g'ri kelsa:
+        if ($request->sent === 'cancel' && $click->clickVacancy) {
+            $matchSummary = $aiAnalysisService->checkClickAiMainDemandsMatch($click);
+            if (!empty($matchSummary['matches_all_main'])) {
+                $comment = trim((string) $request->comment);
+
+                // Standart/shablon xabarlar
+                $defaultUz = "Sizning nomzodingiz ariza topshirgan bo‘sh ish o‘rniga qo‘yilgan talablarga mos kelmaganligi aniqlandi, Siz bu lavozim bo‘yicha tanlovda ishtirok etolmaysiz.";
+                $defaultRu = "Ваша кандидатура не соответствует требованиям, установленным для данной вакантной должности. Вы не сможете продолжить участие в конкурсе по этому направлению.";
+
+                if (empty($comment) || $comment === $defaultUz || $comment === $defaultRu || mb_strlen($comment) < 15) {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Ushbu nomzod sun\'iy intellekt (AI) tahlili bo‘yicha vakansiyaning barcha asosiy talablariga (100%) to‘liq javob beradi. Uni rad etish uchun nega asosiy talablarga javob bersa ham rad etilayotgani to‘g‘risida batafsil asosli izoh kiritish majburiy!'
+                    ], 422);
+                }
+            }
+        }
+
+        $oldValues = $click->toArray();
 
         $click->update([
             'comment' => $request->comment,
             'sent' => $request->sent,
             'admin_id' => $admin
         ]);
-        $newValues = $click;
+        $newValues = $click->toArray();
         ClickLog::create([
-            'admin_id'  => $admin,
-            'model'     => Click::class,
-            'action'    => 'response_click',
-            'old_values'=> json_encode($oldValues, JSON_UNESCAPED_UNICODE),
-            'new_values'=> json_encode($newValues, JSON_UNESCAPED_UNICODE),
+            'admin_id' => $admin,
+            'click_id' => $click->id,
+            'model' => Click::class,
+            'action' => 'response_click',
+            'old_values' => $oldValues,
+            'new_values' => $newValues,
         ]);
 
         return response()->json(['status' => 'success', 'message' => 'Qabul qilindi']);

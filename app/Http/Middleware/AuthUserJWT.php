@@ -18,6 +18,8 @@ class AuthUserJWT extends BaseMiddleware
             if (!$user) {
                 return response()->json(['error' => 'User not found'], 404);
             }
+
+            $request->setUserResolver(fn () => $user);
         } catch (Exception $e) {
             return match (true) {
                 $e instanceof \Tymon\JWTAuth\Exceptions\TokenInvalidException =>

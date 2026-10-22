@@ -26,7 +26,7 @@ class StoreUserRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => 'nullable|mimes:png,jpeg,jpg,svg,pdf|max:5120',
+            'file' => 'nullable|mimes:png,jpeg,jpg,pdf|max:5120',
             'dir_demand_id' => 'required|integer|exists:dir_demands,id',
             'id' => 'nullable|integer|exists:doc_users,id',
             'adder_demands_id' => 'nullable|string',

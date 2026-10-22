@@ -7,7 +7,8 @@ use Mews\Captcha\Facades\Captcha;
 
 class CaptchaController extends Controller
 {
-    public function getCaptcha() {
+    public function getCaptcha()
+    {
         return response()->json(Captcha::create('default', true)); // 'true' parametrib API formatini bildiradi
     }
 }

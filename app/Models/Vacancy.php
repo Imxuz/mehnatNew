@@ -31,6 +31,11 @@ class Vacancy extends Model
     ];
 
 
+    public function specialDemands()
+    {
+        return $this->hasMany(VacancySpecialDemand::class, 'vacancy_id', 'id')->with('dir_demand');
+    }
+
     public function demands()
     {
         return $this->hasMany(Demand::class, 'vacancy_id', 'id')

@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'hr_mehnat' => [
+        'api_url' => env('HR_MEHNAT_API', 'https://test-ai-hr.ngmk.uz/api'),
+    ],
+
+    'insonline' => [
+        'auth' => env('INSONLINE_BASIC_AUTH'),
+    ],
+
 ];
+

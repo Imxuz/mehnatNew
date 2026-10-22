@@ -1,6 +1,7 @@
 <?php
 namespace App\Services;
 use App\Jobs\SendVerificationSms;
+use App\Models\DeviceAttempt;
 use App\Models\PhoneAttempt;
 use App\Models\User;
 use Carbon\Carbon;
@@ -11,8 +12,60 @@ use Illuminate\Validation\ValidationException;
 class AuthUserService
 {
     public function __construct(private SmsService $smsService){}
+
+    /**
+     * Qurilma (Device Fingerprint) bo'yicha kunlik SMS limitini tekshirish
+     */
+    protected function checkDeviceLimit(): ?DeviceAttempt
+    {
+        $fingerprint = request()->header('X-Device-Fingerprint') ?: request()->input('device_fingerprint');
+
+        if (!$fingerprint) {
+            return null;
+        }
+
+        $deviceAttempt = DeviceAttempt::firstOrCreate(
+            ['device_fingerprint' => $fingerprint],
+            ['ip_address' => request()->ip()]
+        );
+
+        if ($deviceAttempt->last_sms_sent_at && !$deviceAttempt->last_sms_sent_at->isToday()) {
+            $deviceAttempt->update(['sms_sent_today' => 0]);
+        }
+
+        if ($deviceAttempt->sms_sent_today >= 3) {
+            throw ValidationException::withMessages([
+                'phone' => ['Ushbu qurilmadan bugungi SMS olish limiti (3 marta) tugadi. Iltimos, ertaga urinib ko‘ring.'],
+            ]);
+        }
+
+        if ($deviceAttempt->last_sms_sent_at && $deviceAttempt->last_sms_sent_at->addSeconds(60)->isFuture()) {
+            throw ValidationException::withMessages([
+                'phone' => ['SMS yuborishdan oldin 60 soniya kuting.'],
+            ]);
+        }
+
+        return $deviceAttempt;
+    }
+
+    /**
+     * Qurilma SMS hisoblagichini oshirish
+     */
+    protected function recordDeviceSmsSent(?DeviceAttempt $deviceAttempt): void
+    {
+        if ($deviceAttempt) {
+            $deviceAttempt->update([
+                'sms_sent_today' => $deviceAttempt->sms_sent_today + 1,
+                'last_sms_sent_at' => now(),
+                'ip_address' => request()->ip(),
+            ]);
+        }
+    }
+
     public function createUser(array $data): User
     {
+        $deviceAttempt = $this->checkDeviceLimit();
+
         $user = User::where('phone', $data['phone'])->first();
         if ($user && $user->is_verified) {
             throw ValidationException::withMessages([
@@ -53,7 +106,7 @@ class AuthUserService
             'sms_sent_today' => $attempt->sms_sent_today + 1,
             'last_sms_sent_at' => now(),
         ]);
-
+        $this->recordDeviceSmsSent($deviceAttempt);
 
         return $user;
     }
@@ -61,6 +114,8 @@ class AuthUserService
 
     public function sendVerificationCode(User $user): bool
     {
+        $deviceAttempt = $this->checkDeviceLimit();
+
         $attempt = PhoneAttempt::firstOrCreate(['user_id' => $user->id]);
         if ($attempt->last_sms_sent_at && !$attempt->last_sms_sent_at->isToday()) {
             $attempt->update(['sms_sent_today' => 0]);
@@ -86,6 +141,7 @@ class AuthUserService
             'sms_sent_today' => $attempt->sms_sent_today + 1,
             'last_sms_sent_at' => now(),
         ]);
+        $this->recordDeviceSmsSent($deviceAttempt);
 
         return true;
     }

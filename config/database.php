@@ -98,6 +98,20 @@ return [
             'sslmode' => 'prefer',
         ],
 
+        'pgsql_hr' => [
+            'driver' => 'pgsql',
+            'host' => env('DB_PGSQL_HR_HOST', '172.16.0.31'),
+            'port' => env('DB_PGSQL_HR_PORT', '5432'),
+            'database' => env('DB_PGSQL_HR_DATABASE', 'db_hr'),
+            'username' => env('DB_PGSQL_HR_USERNAME', 'user_hr'),
+            'password' => env('DB_PGSQL_HR_PASSWORD', 'dI0Asr'),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => 'prefer',
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),
@@ -148,7 +162,7 @@ return [
 
         'options' => [
             'cluster' => env('REDIS_CLUSTER', 'redis'),
-            'prefix' => env('REDIS_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-database-'),
+            'prefix' => env('REDIS_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')) . '-database-'),
             'persistent' => env('REDIS_PERSISTENT', false),
         ],
 

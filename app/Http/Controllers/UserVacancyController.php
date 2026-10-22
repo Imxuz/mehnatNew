@@ -17,7 +17,7 @@ class UserVacancyController extends Controller
      * Display a listing of the resource.
      */
     public function index(){
-        $vacancies = Vacancy::with('demands.dir_demand','occupation','region','oClick')->orderBy('open_at','desc')
+        $vacancies = Vacancy::with('demands.dir_demand', 'occupation', 'region', 'oClick', 'specialDemands.dir_demand')->orderBy('open_at','desc')
             ->where('publication','!=', null)->where('close_at',">",now())->get();
         return response()->json($vacancies);
     }
@@ -80,7 +80,7 @@ class UserVacancyController extends Controller
 
     public function archive(Request $request){
         $perPage = $request->get('per_page', 5);
-        $vacancies = Vacancy::with('demands.dir_demand','occupation','region','oClick')->orderBy('created_at','desc')
+        $vacancies = Vacancy::with('demands.dir_demand', 'occupation', 'region', 'oClick', 'specialDemands.dir_demand')->orderBy('created_at','desc')
             ->where('publication','!=', null)->where('close_at',"<=",now())->paginate($perPage);
         return response()->json($vacancies);
     }

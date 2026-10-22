@@ -42,7 +42,7 @@ class AdderDemandController extends Controller
     public function update(UpdateAdderDemandRequest $request, AdderDemand $adderDemand)
     {
         $this->defaultAdminService->errAllVacancyView();
-        AdderDemand::update($request->validated());
+        $adderDemand->update($request->validated());
     }
 
     /**
