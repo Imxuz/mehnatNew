@@ -20,7 +20,8 @@ class AuthUserService
     {
         $fingerprint = request()->header('X-Device-Fingerprint') ?: request()->input('device_fingerprint');
 
-        if (!$fingerprint) {
+        // Ustun string(64): uzun yoki g'alati qiymat MySQL'da "Data too long" (SQLSTATE 22001) beradi
+        if (!is_string($fingerprint) || !preg_match('/^[A-Za-z0-9_-]{8,64}$/', $fingerprint)) {
             return null;
         }
 
@@ -116,7 +117,12 @@ class AuthUserService
     {
         $deviceAttempt = $this->checkDeviceLimit();
 
-        $attempt = PhoneAttempt::firstOrCreate(['user_id' => $user->id]);
+        // ip_address ustuni NOT NULL va default'siz — usiz yangi qator yaratib bo'lmaydi
+        // (SQLSTATE[HY000] 1364 "Field 'ip_address' doesn't have a default value")
+        $attempt = PhoneAttempt::firstOrCreate(
+            ['user_id' => $user->id],
+            ['ip_address' => request()->ip() ?? '0.0.0.0']
+        );
         if ($attempt->last_sms_sent_at && !$attempt->last_sms_sent_at->isToday()) {
             $attempt->update(['sms_sent_today' => 0]);
         }
@@ -178,8 +184,18 @@ class AuthUserService
         try {
             $this->sendVerificationCode($user);
             return 'Tasdiqlash kodi muvaffaqiyatli yuborildi';
-        } catch (\Exception $e) {
-            throw new \Exception($e->getMessage(), $e->getCode() ?: 429);
+        } catch (ValidationException $e) {
+            // Limit / kutish xabarlari foydalanuvchiga ko'rsatiladi
+            throw new \Exception($e->getMessage(), 429);
+        } catch (\Throwable $e) {
+            // PDOException/QueryException getCode() SQLSTATE satrini ("42S02" kabi) qaytaradi —
+            // uni \Exception ga int sifatida berib bo'lmaydi. Asl xato logga yoziladi.
+            Log::error('resetCode: SMS kod yuborishda xatolik', [
+                'phone' => $phone,
+                'error' => $e->getMessage(),
+                'exception' => get_class($e),
+            ]);
+            throw new \Exception('Tasdiqlash kodini yuborishda xatolik yuz berdi. Keyinroq urinib ko‘ring.', 500);
         }
     }
 
